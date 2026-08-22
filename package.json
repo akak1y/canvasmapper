@@ -1,0 +1,67 @@
+{
+    "name": "canvasmapper",
+    "version": "0.1.0",
+    "description": "High-performance Canvas map engine for large-scale interactive maps",
+    "type": "module",
+    "main": "./dist/canvasmapper.umd.js",
+    "module": "./dist/canvasmapper.es.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "import": "./dist/canvasmapper.es.js",
+            "require": "./dist/canvasmapper.umd.js",
+            "types": "./dist/index.d.ts"
+        }
+    },
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "dev": "vite",
+        "build": "rollup -c",
+        "test": "vitest",
+        "test:run": "vitest run",
+        "lint": "eslint . --ext .ts,.js --report-unused-disable-directives --max-warnings 0",
+        "lint:fix": "eslint . --ext .ts,.js --fix",
+        "format": "prettier --write \"**/*.{ts,js,json,md,html}\"",
+        "format:check": "prettier --check \"**/*.{ts,js,json,md,html}\"",
+        "check": "npm run lint && npm run format:check && npm run build",
+        "prepublishOnly": "npm run build"
+    },
+    "keywords": [
+        "canvas",
+        "map",
+        "tiles",
+        "renderer",
+        "interactive",
+        "performance",
+        "2d"
+    ],
+    "author": "akak1y <gamer.all.games@list.ru>",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/akak1y/canvasmapper.git"
+    },
+    "bugs": {
+        "url": "https://github.com/akak1y/canvasmapper/issues"
+    },
+    "homepage": "https://github.com/akak1y/canvasmapper#readme",
+    "devDependencies": {
+        "@rollup/plugin-typescript": "^11.1.6",
+        "@typescript-eslint/eslint-plugin": "^7.0.0",
+        "@typescript-eslint/parser": "^7.0.0",
+        "eslint": "^8.57.0",
+        "eslint-config-prettier": "^9.1.0",
+        "prettier": "^3.2.5",
+        "rollup": "^4.12.0",
+        "rollup-plugin-dts": "^6.1.0",
+        "tslib": "^2.6.2",
+        "typescript": "^5.3.3",
+        "vite": "^5.1.4",
+        "vitest": "^1.3.1"
+    },
+    "engines": {
+        "node": ">=18.0.0"
+    }
+}
