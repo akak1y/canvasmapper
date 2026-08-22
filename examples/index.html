@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>CanvasMapper Example</title>
+        <style>
+            body {
+                margin: 0;
+                padding: 0;
+                font-family: Arial, sans-serif;
+            }
+            #map {
+                width: 100vw;
+                height: 100vh;
+                background: #f0f0f0;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="map"></div>
+        <script type="module">
+            import { MapEngine } from '../src/index.ts';
+
+            const map = new MapEngine(document.getElementById('map'), {
+                tileSize: 256,
+                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+            });
+
+            map.setView({ x: 0, y: 0, zoom: 2 });
+
+            console.log('CanvasMapper initialized');
+        </script>
+    </body>
+</html>
