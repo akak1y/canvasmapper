@@ -1,99 +1,179 @@
+import { InputController } from '../input/InputController';
+import type { Point } from '../types';
+import { clamp } from '../utils/math';
+import { Camera, type ViewState } from './Camera';
 import { EventEmitter } from './EventEmitter';
-import { Camera, ViewState } from './Camera';
+import { Renderer } from './Renderer';
+import { Viewport } from './Viewport';
 
-/**
- * MapEngine configuration options
- */
 export interface MapEngineOptions {
     tileSize?: number;
     urlTemplate?: string;
     minZoom?: number;
     maxZoom?: number;
+    zoom?: {
+        /** Fractional, animated zoom. Default: true */
+        smooth?: boolean;
+        /** Step for zoomIn()/zoomOut(). Default: 1 */
+        step?: number;
+    };
+}
+
+interface ResolvedOptions {
+    tileSize: number;
+    urlTemplate: string;
+    minZoom: number;
+    maxZoom: number;
+    smoothZoom: boolean;
+    zoomStep: number;
 }
 
 /**
- * Main entry point for CanvasMapper
+ * Main entry point of CanvasMapper.
+ * Orchestrates viewport, camera, input and the render loop.
  */
 export class MapEngine extends EventEmitter {
-    private container: HTMLElement;
-    private canvas: HTMLCanvasElement;
-    private ctx: CanvasRenderingContext2D;
-    private camera: Camera;
-    private options: Required<MapEngineOptions>;
+    private readonly viewport: Viewport;
+    private readonly camera: Camera;
+    private readonly renderer: Renderer;
+    private readonly input: InputController;
+    private readonly options: ResolvedOptions;
+
+    private dirty = true;
+    private raf = 0;
+    private lastTime = 0;
+    private targetZoom: number;
+    private zoomAnchor: Point;
+    private inertia: Point | null = null;
 
     constructor(container: HTMLElement, options: MapEngineOptions = {}) {
         super();
-
-        this.container = container;
         this.options = {
             tileSize: options.tileSize ?? 256,
             urlTemplate: options.urlTemplate ?? '/tiles/{z}/{x}_{y}.png',
             minZoom: options.minZoom ?? 0,
             maxZoom: options.maxZoom ?? 18,
+            smoothZoom: options.zoom?.smooth ?? true,
+            zoomStep: options.zoom?.step ?? 1,
         };
 
-        // Create canvas
-        this.canvas = document.createElement('canvas');
-        this.canvas.style.width = '100%';
-        this.canvas.style.height = '100%';
-        this.container.appendChild(this.canvas);
+        this.viewport = new Viewport(container);
+        this.camera = new Camera({
+            minZoom: this.options.minZoom,
+            maxZoom: this.options.maxZoom,
+        });
+        this.renderer = new Renderer(this.viewport, this.camera);
+        this.targetZoom = this.camera.getViewState().zoom;
+        this.zoomAnchor = this.center();
 
-        // Get context
-        const ctx = this.canvas.getContext('2d');
-        if (!ctx) {
-            throw new Error('Failed to get 2D context');
-        }
-        this.ctx = ctx;
+        this.input = new InputController(this.viewport.canvas, {
+            onPanStart: () => {
+                this.inertia = null;
+            },
+            onPan: (dx, dy) => {
+                this.camera.panByScreen(dx, dy);
+                this.dirty = true;
+            },
+            onPanEnd: (velocity) => {
+                if (Math.hypot(velocity.x, velocity.y) > 0.05) this.inertia = velocity;
+            },
+            onZoom: (delta, anchor) => this.applyZoom(delta, anchor),
+            onTap: (screen) => {
+                this.emit('click', { screen, world: this.screenToWorld(screen) });
+            },
+        });
 
-        // Initialize camera
-        this.camera = new Camera();
-
-        // Setup canvas size
-        this.resize();
-        window.addEventListener('resize', () => this.resize());
+        this.viewport.onResize = () => {
+            this.dirty = true;
+        };
+        this.raf = requestAnimationFrame(this.frame);
     }
 
-    private resize(): void {
-        const dpr = window.devicePixelRatio || 1;
-        const rect = this.container.getBoundingClientRect();
-
-        this.canvas.width = rect.width * dpr;
-        this.canvas.height = rect.height * dpr;
-
-        this.ctx.scale(dpr, dpr);
-        this.render();
-    }
-
-    /**
-     * Set the view (center and zoom)
-     */
-    setView(state: ViewState): void {
-        this.camera.setViewState(state);
-        this.render();
-    }
-
-    /**
-     * Get current view state
-     */
+    /** Current view: world-space center + fractional zoom */
     getView(): ViewState {
         return this.camera.getViewState();
     }
 
-    /**
-     * Получить опции движка (только чтение)
-     */
-    getOptions(): Readonly<Required<MapEngineOptions>> {
+    setView(state: Partial<ViewState>): void {
+        this.camera.setViewState(state);
+        if (state.zoom !== undefined) this.targetZoom = this.camera.getViewState().zoom;
+        this.zoomAnchor = this.center();
+        this.dirty = true;
+    }
+
+    zoomIn(): void {
+        this.applyZoom(this.options.zoomStep, this.center());
+    }
+
+    zoomOut(): void {
+        this.applyZoom(-this.options.zoomStep, this.center());
+    }
+
+    getOptions(): Readonly<ResolvedOptions> {
         return this.options;
     }
 
-    /**
-     * Render the map
-     */
-    private render(): void {
-        const rect = this.container.getBoundingClientRect();
-        this.ctx.clearRect(0, 0, rect.width, rect.height);
-
-        // TODO: Render tiles and markers
-        this.emit('render');
+    worldToScreen(point: Point): Point {
+        return this.camera.worldToScreen(point, this.viewport.size);
     }
+
+    screenToWorld(point: Point): Point {
+        return this.camera.screenToWorld(point, this.viewport.size);
+    }
+
+    destroy(): void {
+        cancelAnimationFrame(this.raf);
+        this.input.destroy();
+        this.viewport.destroy();
+    }
+
+    private center(): Point {
+        const size = this.viewport.size;
+        return { x: size.width / 2, y: size.height / 2 };
+    }
+
+    private applyZoom(delta: number, anchor: Point): void {
+        this.zoomAnchor = anchor;
+        const next = clamp(this.targetZoom + delta, this.options.minZoom, this.options.maxZoom);
+        this.targetZoom = next;
+        if (!this.options.smoothZoom) {
+            this.camera.zoomAt(anchor, this.viewport.size, next);
+            this.dirty = true;
+        }
+        // smooth mode: the render loop eases towards targetZoom itself
+    }
+
+    /** The heartbeat: rAF loop with dirty flag, smooth zoom and inertia */
+    private frame = (now: number): void => {
+        this.raf = requestAnimationFrame(this.frame);
+        const dt = this.lastTime ? Math.min(50, now - this.lastTime) : 16;
+        this.lastTime = now;
+        let active = this.dirty;
+
+        // 1) ease current zoom towards the target (fractional smooth zoom)
+        const zoom = this.camera.getViewState().zoom;
+        const diff = this.targetZoom - zoom;
+        if (Math.abs(diff) > 0.0005) {
+            // Frame-rate independent exponential smoothing
+            const t = 1 - Math.pow(0.001, dt / 1000);
+            this.camera.zoomAt(this.zoomAnchor, this.viewport.size, zoom + diff * t);
+            active = true;
+        }
+
+        // 2) inertia after a drag release
+        if (this.inertia) {
+            this.camera.panByScreen(this.inertia.x * dt, this.inertia.y * dt);
+            const decay = Math.pow(0.5, dt / 120); // speed halves every 120ms
+            this.inertia.x *= decay;
+            this.inertia.y *= decay;
+            if (Math.hypot(this.inertia.x, this.inertia.y) < 0.02) this.inertia = null;
+            active = true;
+        }
+
+        if (active) {
+            this.renderer.render();
+            this.dirty = false;
+            this.emit('viewchange', this.getView());
+        }
+    };
 }
