@@ -7,29 +7,42 @@
         <style>
             body {
                 margin: 0;
-                padding: 0;
-                font-family: Arial, sans-serif;
+                font-family: system-ui, sans-serif;
             }
             #map {
                 width: 100vw;
                 height: 100vh;
-                background: #f0f0f0;
+            }
+            .hud {
+                position: fixed;
+                top: 12px;
+                left: 12px;
+                padding: 8px 12px;
+                background: rgba(15, 20, 32, 0.8);
+                color: #7fd1ff;
+                border-radius: 8px;
+                font: 12px/1.4 monospace;
+                pointer-events: none;
             }
         </style>
     </head>
     <body>
         <div id="map"></div>
+        <div class="hud" id="hud">drag to pan · wheel to zoom</div>
         <script type="module">
-            import { MapEngine } from '../src/index.ts';
+            import { MapEngine } from '../src/index';
 
             const map = new MapEngine(document.getElementById('map'), {
-                tileSize: 256,
-                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                minZoom: -2,
+                maxZoom: 6,
             });
 
-            map.setView({ x: 0, y: 0, zoom: 2 });
+            map.setView({ x: 0, y: 0, zoom: 0 });
 
-            console.log('CanvasMapper initialized');
+            map.on('viewchange', (state) => {
+                document.getElementById('hud').textContent =
+                    'x: ' + state.x.toFixed(0) + '  y: ' + state.y.toFixed(0) + '  zoom: ' + state.zoom.toFixed(2);
+            });
         </script>
     </body>
 </html>
