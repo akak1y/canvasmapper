@@ -9,49 +9,70 @@
 
 ## 🚧 Статус: Alpha
 
-Проект на ранней стадии разработки. API может измениться без предупреждения.
+Проект в активной разработке. API может измениться без предупреждения.
+
+**Уже работает:**
+
+- ✅ Плавный пан/зум (дробный зум, зум к курсору, инерция)
+- ✅ Тайловый рендеринг с отсечением невидимого и LRU-кэшем
+- ✅ Подключаемые источники тайлов (URL-шаблон; остальные на подходе)
+- ✅ Retina / HiDPI, тач (пан и pinch-зум)
+
+**Впереди:**
+
+- ⏳ Источник-матрица (`x_y.png`)
+- ⏳ Одна большая картинка (автонарезка в Web Worker)
+- ⏳ Кнопки зума с кастомным CSS
+- ⏳ Маркеры и система слоёв
+- ⏳ CLI-слайсер тайлов
 
 ## ✨ Возможности
 
-- 🚀 **Высокая производительность** — тысячи маркеров при 60 FPS на HTML5 Canvas
-- 🗺️ **Тайловый рендеринг** — эффективная загрузка и отображение больших карт по кускам-тайлам
-- 🎯 **Интерактивность** — встроенные панорамирование, зум и клики по маркерам
-- 🎨 **Система слоёв** — маркеры организуются в слои с управлением z-index
-- 📱 **Тач-поддержка** — полная поддержка мобильных устройств
-- ⚡ **Ноль зависимостей** — лёгкая библиотека без внешних пакетов
-- 🔧 **TypeScript** — полные типы в комплекте
+- 🚀 **Производительность** - rAF-цикл с dirty flag; цель — тысячи маркеров при 60 FPS
+- 🗺️ **Тайловый рендеринг** - culling, LRU-кэш, LOD-масштабирование
+- 🔌 **Сменные источники** - URL-шаблон сегодня; матрица и одиночная картинка в роадмапе
+- 🎯 **Интерактивность** - плавный пан/зум, зум к курсору, инерция
+- 📱 **Тач-поддержка** - пан и pinch-зум на мобильных
+- ⚡ **Ноль зависимостей** - лёгкая библиотека без внешних пакетов
+- 🔧 **TypeScript** - полные типы в комплекте
 
 ## 📦 Установка
 
+Пакет ещё не опубликован в npm (альфа). Пока так:
+
 ```bash
-npm install canvasmapper
+git clone https://github.com/akak1y/canvasmapper.git
+cd canvasmapper
+npm install
+npm run build
 ```
 
-Или через CDN:
+Затем подключи через `npm link` в свой проект или подключи `dist/canvasmapper.umd.js` через `<script>`.
 
-```html
-<script src="https://unpkg.com/canvasmapper@latest/dist/canvasmapper.umd.js"></script>
-```
+С беты заработает `npm install canvasmapper`.
 
 ## 🚀 Быстрый старт
 
 ```javascript
-import { MapEngine } from 'canvasmapper';
+import { MapEngine, UrlTileSource } from 'canvasmapper';
 
 const map = new MapEngine(document.getElementById('map'), {
-    tileSize: 256,
-    urlTemplate: '/tiles/{z}/{x}_{y}.png',
+    minZoom: 0,
+    maxZoom: 10,
+    source: new UrlTileSource({ urlTemplate: '/tiles/{z}/{x}_{y}.png' }),
 });
 
 map.setView({ x: 0, y: 0, zoom: 2 });
 
-const layer = map.createLayer('markers');
-layer.addMarker({
-    x: 100,
-    y: 200,
-    icon: '/icon.png',
-    label: 'Точка интереса',
-});
+map.on('click', (e) => console.log(e.world));
+```
+
+## 🧪 Разработка
+
+```bash
+npm run dev     # демки: http://localhost:3000 и /basic-url.html
+npm run test    # юнит-тесты
+npm run check   # lint + проверка форматирования + сборка
 ```
 
 ## 📚 Документация
