@@ -1,24 +1,28 @@
 /**
- * CanvasMapper - High-performance Canvas map engine
+ * CanvasMapper — high-performance Canvas map engine
  * @packageDocumentation
  */
 
-// Core exports
+// Core
 export { MapEngine } from './core/MapEngine';
 export type { MapEngineOptions } from './core/MapEngine';
-
 export { Camera } from './core/Camera';
-export type { ViewState } from './core/Camera';
-
+export type { CameraOptions, ViewState } from './core/Camera';
 export { EventEmitter } from './core/EventEmitter';
+export { animate } from './core/Animation';
 
 // Tiles
-export { TileManager } from './tiles/TileManager';
+export { TileManager, computeVisibleRange } from './tiles/TileManager';
+export type { TileRange } from './tiles/TileManager';
+export { TileCache } from './tiles/TileCache';
+export { UrlTileSource } from './tiles/UrlTileSource';
+export type { UrlTileSourceOptions } from './tiles/UrlTileSource';
+export type { TileCoord, TileImage, TileSource } from './tiles/TileSource';
 
-// Layers
+// Layers (stubs until stage 5)
 export { LayerManager } from './layers/LayerManager';
 export { MarkerLayer } from './layers/MarkerLayer';
-export type { MarkerOptions, Marker } from './layers/MarkerLayer';
+export type { Marker, MarkerOptions } from './layers/MarkerLayer';
 
 // Input
 export { InputController } from './input/InputController';

@@ -1,0 +1,36 @@
+import type { TileCoord, TileImage, TileSource } from './TileSource';
+
+export interface UrlTileSourceOptions {
+    /** e.g. '/tiles/{z}/{x}_{y}.png' or 'https://tile.openstreetmap.org/{z}/{x}/{y}.png' */
+    urlTemplate: string;
+    minNativeZoom?: number;
+    maxNativeZoom?: number;
+}
+
+/** Serves tiles over HTTP using a URL template */
+export class UrlTileSource implements TileSource {
+    readonly minNativeZoom?: number;
+    readonly maxNativeZoom?: number;
+    private readonly template: string;
+
+    constructor(options: UrlTileSourceOptions) {
+        this.template = options.urlTemplate;
+        this.minNativeZoom = options.minNativeZoom;
+        this.maxNativeZoom = options.maxNativeZoom;
+    }
+
+    getTileUrl(coord: TileCoord): string {
+        return this.template.replace('{z}', String(coord.z)).replace('{x}', String(coord.x)).replace('{y}', String(coord.y));
+    }
+
+    getTile(coord: TileCoord): Promise<TileImage> {
+        const url = this.getTileUrl(coord);
+        return new Promise((resolve, reject) => {
+            const image = new Image();
+            image.crossOrigin = 'anonymous';
+            image.onload = () => resolve(image);
+            image.onerror = () => reject(new Error(`Tile failed to load: ${url}`));
+            image.src = url;
+        });
+    }
+}
