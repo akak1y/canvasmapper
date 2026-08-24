@@ -1,14 +1,16 @@
+import type { TileManager } from '../tiles/TileManager';
 import type { Camera } from './Camera';
 import type { Viewport } from './Viewport';
 
 /**
- * Draw pipeline. Stage 1: a world-space grid so pan/zoom are visible.
- * Stage 2+ adds the tiles pass, then the layers pass.
+ * Draw pipeline: background -> debug grid -> tiles.
+ * Stage 5 adds the layers (markers) pass on top.
  */
 export class Renderer {
     constructor(
         private readonly viewport: Viewport,
-        private readonly camera: Camera
+        private readonly camera: Camera,
+        private readonly tiles: TileManager | null = null
     ) {}
 
     render(): void {
@@ -19,9 +21,15 @@ export class Renderer {
         ctx.fillStyle = '#0f1420';
         ctx.fillRect(0, 0, size.width, size.height);
         this.drawGrid();
+
+        if (this.tiles) {
+            const state = this.camera.getViewState();
+            this.tiles.update(state, size); // async loads, no blocking
+            this.tiles.draw(ctx, this.camera, size);
+        }
     }
 
-    /** Infinite grid in world coordinates: proves the camera math works */
+    /** Infinite world-space grid, useful while tiles are loading */
     private drawGrid(): void {
         const { ctx } = this.viewport;
         const size = this.viewport.size;
@@ -45,7 +53,6 @@ export class Renderer {
         }
         ctx.stroke();
 
-        // World origin marker
         const origin = this.camera.worldToScreen({ x: 0, y: 0 }, size);
         ctx.fillStyle = '#7fd1ff';
         ctx.fillRect(origin.x - 2, origin.y - 2, 4, 4);

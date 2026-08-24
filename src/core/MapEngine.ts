@@ -5,6 +5,9 @@ import { Camera, type ViewState } from './Camera';
 import { EventEmitter } from './EventEmitter';
 import { Renderer } from './Renderer';
 import { Viewport } from './Viewport';
+import { TileManager } from '../tiles/TileManager';
+import type { TileSource } from '../tiles/TileSource';
+import { UrlTileSource } from '../tiles/UrlTileSource';
 
 export interface MapEngineOptions {
     tileSize?: number;
@@ -17,6 +20,8 @@ export interface MapEngineOptions {
         /** Step for zoomIn()/zoomOut(). Default: 1 */
         step?: number;
     };
+    /** Custom tile source; defaults to UrlTileSource built from urlTemplate */
+    source?: TileSource;
 }
 
 interface ResolvedOptions {
@@ -38,6 +43,7 @@ export class MapEngine extends EventEmitter {
     private readonly renderer: Renderer;
     private readonly input: InputController;
     private readonly options: ResolvedOptions;
+    private readonly tiles: TileManager;
 
     private dirty = true;
     private raf = 0;
@@ -62,7 +68,11 @@ export class MapEngine extends EventEmitter {
             minZoom: this.options.minZoom,
             maxZoom: this.options.maxZoom,
         });
-        this.renderer = new Renderer(this.viewport, this.camera);
+        const source = options.source ?? new UrlTileSource({ urlTemplate: this.options.urlTemplate });
+        this.tiles = new TileManager(source, this.options.tileSize, () => {
+            this.dirty = true;
+        });
+        this.renderer = new Renderer(this.viewport, this.camera, this.tiles);
         this.targetZoom = this.camera.getViewState().zoom;
         this.zoomAnchor = this.center();
 

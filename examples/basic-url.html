@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>CanvasMapper — OpenStreetMap</title>
+        <style>
+            body {
+                margin: 0;
+                font-family: system-ui, sans-serif;
+            }
+            #map {
+                width: 100vw;
+                height: 100vh;
+            }
+            .attribution {
+                position: fixed;
+                bottom: 0;
+                right: 0;
+                padding: 2px 6px;
+                background: rgba(255, 255, 255, 0.7);
+                font: 11px sans-serif;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="map"></div>
+        <div class="attribution">© OpenStreetMap contributors</div>
+        <script type="module">
+            import { MapEngine, UrlTileSource } from '../src/index';
+
+            // OSM uses the classic {z}/{x}/{y} naming — the template is fully configurable
+            const map = new MapEngine(document.getElementById('map'), {
+                minZoom: 0,
+                maxZoom: 18,
+                source: new UrlTileSource({
+                    urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    maxNativeZoom: 19,
+                }),
+            });
+
+            // In our world units the whole map spans [0, 256) at zoom 0
+            map.setView({ x: 128, y: 128, zoom: 2 });
+        </script>
+    </body>
+</html>
