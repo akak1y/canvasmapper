@@ -14,5 +14,5 @@ export interface Marker {
  * MarkerLayer renders markers on a layer
  */
 export class MarkerLayer {
-    // TODO: implement marker rendering (stage 5)
+    // TODO: implement marker rendering
 }

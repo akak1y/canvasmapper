@@ -4,7 +4,6 @@ import type { Viewport } from './Viewport';
 
 /**
  * Draw pipeline: background -> debug grid -> tiles.
- * Stage 5 adds the layers (markers) pass on top.
  */
 export class Renderer {
     constructor(

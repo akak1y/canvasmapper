@@ -8,7 +8,7 @@ export interface AnimationOptions {
     onComplete?: () => void;
 }
 
-/** One-shot rAF animation. Returns a cancel function. Used by flyTo (stage 3+) */
+/** One-shot rAF animation. Returns a cancel function. */
 export function animate(options: AnimationOptions): () => void {
     const easing = options.easing ?? Easings.easeOutCubic;
     const start = performance.now();

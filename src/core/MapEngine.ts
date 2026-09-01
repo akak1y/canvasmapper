@@ -8,6 +8,7 @@ import { Viewport } from './Viewport';
 import { TileManager } from '../tiles/TileManager';
 import type { TileSource } from '../tiles/TileSource';
 import { UrlTileSource } from '../tiles/UrlTileSource';
+import { Controls, type ControlsOptions } from '../controls/Controls';
 
 export interface MapEngineOptions {
     tileSize?: number;
@@ -22,6 +23,8 @@ export interface MapEngineOptions {
     };
     /** Custom tile source; defaults to UrlTileSource built from urlTemplate */
     source?: TileSource;
+    /** Zoom/reset buttons: false to disable, or an options object */
+    controls?: boolean | ControlsOptions;
 }
 
 interface ResolvedOptions {
@@ -44,6 +47,8 @@ export class MapEngine extends EventEmitter {
     private readonly input: InputController;
     private readonly options: ResolvedOptions;
     private readonly tiles: TileManager;
+    private readonly controls: Controls | null;
+    private homeView: ViewState = { x: 0, y: 0, zoom: 0 };
 
     private dirty = true;
     private raf = 0;
@@ -92,6 +97,9 @@ export class MapEngine extends EventEmitter {
                 this.emit('click', { screen, world: this.screenToWorld(screen) });
             },
         });
+        const controlsRaw = options.controls ?? true;
+        const controlsOptions: ControlsOptions = typeof controlsRaw === 'boolean' ? { enabled: controlsRaw } : controlsRaw;
+        this.controls = controlsOptions.enabled === false ? null : new Controls(this, container, controlsOptions);
 
         this.viewport.onResize = () => {
             this.dirty = true;
@@ -109,6 +117,7 @@ export class MapEngine extends EventEmitter {
         if (state.zoom !== undefined) this.targetZoom = this.camera.getViewState().zoom;
         this.zoomAnchor = this.center();
         this.dirty = true;
+        this.homeView = this.camera.getViewState();
     }
 
     zoomIn(): void {
@@ -117,6 +126,11 @@ export class MapEngine extends EventEmitter {
 
     zoomOut(): void {
         this.applyZoom(-this.options.zoomStep, this.center());
+    }
+
+    /** Return to the last explicitly set view */
+    resetView(): void {
+        this.setView({ ...this.homeView });
     }
 
     getOptions(): Readonly<ResolvedOptions> {
@@ -135,6 +149,7 @@ export class MapEngine extends EventEmitter {
         cancelAnimationFrame(this.raf);
         this.input.destroy();
         this.viewport.destroy();
+        this.controls?.destroy();
     }
 
     private center(): Point {

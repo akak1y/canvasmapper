@@ -1,4 +1,5 @@
 import type { TileCoord, TileImage, TileSource } from './TileSource';
+import { loadImage } from '../utils/image';
 
 export interface UrlTileSourceOptions {
     /** e.g. '/tiles/{z}/{x}_{y}.png' or 'https://tile.openstreetmap.org/{z}/{x}/{y}.png' */
@@ -24,13 +25,6 @@ export class UrlTileSource implements TileSource {
     }
 
     getTile(coord: TileCoord): Promise<TileImage> {
-        const url = this.getTileUrl(coord);
-        return new Promise((resolve, reject) => {
-            const image = new Image();
-            image.crossOrigin = 'anonymous';
-            image.onload = () => resolve(image);
-            image.onerror = () => reject(new Error(`Tile failed to load: ${url}`));
-            image.src = url;
-        });
+        return loadImage(this.getTileUrl(coord));
     }
 }

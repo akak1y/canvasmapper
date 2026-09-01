@@ -18,8 +18,14 @@ export { TileCache } from './tiles/TileCache';
 export { UrlTileSource } from './tiles/UrlTileSource';
 export type { UrlTileSourceOptions } from './tiles/UrlTileSource';
 export type { TileCoord, TileImage, TileSource } from './tiles/TileSource';
+export { MatrixTileSource } from './tiles/MatrixTileSource';
+export type { MatrixTileSourceOptions } from './tiles/MatrixTileSource';
 
-// Layers (stubs until stage 5)
+// Controls
+export { Controls } from './controls/Controls';
+export type { ControlButton, ControlsOptions, ControlsPosition } from './controls/Controls';
+
+// Layers
 export { LayerManager } from './layers/LayerManager';
 export { MarkerLayer } from './layers/MarkerLayer';
 export type { Marker, MarkerOptions } from './layers/MarkerLayer';

@@ -68,6 +68,7 @@ export class TileManager {
             for (let y = range.minY; y <= range.maxY; y++) {
                 const coord: TileCoord = { z: tz, x, y };
                 const k = key(coord);
+                if (this.source.hasTile && !this.source.hasTile(coord)) continue;
                 if (this.cache.has(k) || this.inFlight.has(k) || this.failed.has(k)) continue;
 
                 const promise = this.source.getTile(coord);
