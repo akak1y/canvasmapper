@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>CanvasMapper — MatrixTileSource</title>
+        <style>
+            body {
+                margin: 0;
+            }
+            #map {
+                width: 100vw;
+                height: 100vh;
+            }
+            .cm-btn {
+                border-radius: 999px;
+                background: #24435c;
+                color: #ffd166;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="map"></div>
+        <script type="module">
+            import { MapEngine, MatrixTileSource } from '../src/index';
+
+            const source = new MatrixTileSource({
+                urlTemplate: '/assets/matrix/{y}-{x}.jpg',
+                cols: 6,
+                rows: 6,
+                firstIndex: 1,
+            });
+
+            const map = new MapEngine(document.getElementById('map'), {
+                minZoom: -2,
+                maxZoom: 4,
+                source,
+                controls: { position: 'topright' },
+            });
+
+            // Center of the 6x6 matrix: 6 * 256 / 2 = 768
+            map.setView({ x: 768, y: 768, zoom: 0 });
+        </script>
+    </body>
+</html>
