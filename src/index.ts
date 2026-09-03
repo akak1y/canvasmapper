@@ -20,6 +20,9 @@ export type { UrlTileSourceOptions } from './tiles/UrlTileSource';
 export type { TileCoord, TileImage, TileSource } from './tiles/TileSource';
 export { MatrixTileSource } from './tiles/MatrixTileSource';
 export type { MatrixTileSourceOptions } from './tiles/MatrixTileSource';
+export { SingleImageSource } from './tiles/SingleImageSource';
+export type { SingleImageSourceOptions } from './tiles/SingleImageSource';
+export { IDBTileCache } from './tiles/idbCache';
 
 // Controls
 export { Controls } from './controls/Controls';

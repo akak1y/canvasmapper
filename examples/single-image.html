@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>CanvasMapper — SingleImageSource</title>
+        <style>
+            body {
+                margin: 0;
+                font-family: system-ui, sans-serif;
+            }
+            #map {
+                width: 100vw;
+                height: 100vh;
+            }
+            .hint {
+                position: fixed;
+                top: 12px;
+                left: 12px;
+                padding: 8px 12px;
+                background: rgba(15, 20, 32, 0.8);
+                color: #7fd1ff;
+                border-radius: 8px;
+                font: 12px/1.4 monospace;
+                pointer-events: none;
+                max-width: 380px;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="map"></div>
+        <div class="hint">
+            4096 × 4096 image, auto-sliced into 256px tiles.<br />
+            Reload the page — tiles come back instantly from IndexedDB.
+        </div>
+        <script type="module">
+            import { MapEngine, SingleImageSource } from '../src/index';
+
+            // Generate a 4096x4096 test image on the fly.
+            // In a real app this would be `await fetch('/map.jpg').then(r => r.blob())`.
+            async function makeDemoImage() {
+                const size = 4096;
+                const canvas = document.createElement('canvas');
+                canvas.width = canvas.height = size;
+                const g = canvas.getContext('2d');
+
+                // 16x16 grid of colored cells, each cell labeled with its row/col
+                const cell = size / 16;
+                for (let y = 0; y < 16; y++) {
+                    for (let x = 0; x < 16; x++) {
+                        g.fillStyle = `hsl(${(x * 47 + y * 31) % 360} 45% ${22 + ((x + y) % 4) * 7}%)`;
+                        g.fillRect(x * cell, y * cell, cell, cell);
+                        g.strokeStyle = 'rgba(255,255,255,0.3)';
+                        g.strokeRect(x * cell + 0.5, y * cell + 0.5, cell - 1, cell - 1);
+                        g.fillStyle = '#fff';
+                        g.font = 'bold 48px monospace';
+                        g.fillText(`${x + 1}-${y + 1}`, x * cell + 20, y * cell + cell / 2 + 16);
+                    }
+                }
+
+                return new Promise((resolve) => {
+                    canvas.toBlob((b) => resolve(b), 'image/png');
+                });
+            }
+
+            const blob = await makeDemoImage();
+
+            const source = new SingleImageSource({
+                source: blob,
+                tileSize: 256,
+                cacheKey: 'demo_4096',
+            });
+
+            const map = new MapEngine(document.getElementById('map'), {
+                minZoom: -4,
+                maxZoom: 4,
+                source,
+                controls: { position: 'topright' },
+            });
+
+            // Center of the 4096px image: 2048, 2048 at zoom 0
+            map.setView({ x: 2048, y: 2048, zoom: 0 });
+        </script>
+    </body>
+</html>
