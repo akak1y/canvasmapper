@@ -1,8 +1,9 @@
 {
     "name": "canvasmapper",
-    "version": "0.1.0",
+    "version": "0.1.0-beta.1",
     "description": "High-performance Canvas map engine for large-scale interactive maps",
     "type": "module",
+    "sideEffects": false,
     "main": "./dist/canvasmapper.umd.js",
     "module": "./dist/canvasmapper.es.js",
     "types": "./dist/index.d.ts",
@@ -11,10 +12,13 @@
             "import": "./dist/canvasmapper.es.js",
             "require": "./dist/canvasmapper.umd.js",
             "types": "./dist/index.d.ts"
-        }
+        },
+        "./package.json": "./package.json"
     },
     "files": [
-        "dist"
+        "dist",
+        "README.md",
+        "LICENSE"
     ],
     "scripts": {
         "dev": "vite",
@@ -30,8 +34,13 @@
     },
     "keywords": [
         "canvas",
+        "canvas2d",
         "map",
+        "map-engine",
         "tiles",
+        "markers",
+        "typescript",
+        "zero-dependency",
         "renderer",
         "interactive",
         "performance",
@@ -62,6 +71,6 @@
         "vitest": "^1.3.1"
     },
     "engines": {
-        "node": ">=18.0.0"
+        "node": ">=20.19.0"
     }
 }
