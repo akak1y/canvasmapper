@@ -28,10 +28,13 @@ export { IDBTileCache } from './tiles/idbCache';
 export { Controls } from './controls/Controls';
 export type { ControlButton, ControlsOptions, ControlsPosition } from './controls/Controls';
 
-// Layers
+// Layers & markers
 export { LayerManager } from './layers/LayerManager';
-export { MarkerLayer } from './layers/MarkerLayer';
-export type { Marker, MarkerOptions } from './layers/MarkerLayer';
+export { MarkerLayer, computeVisibleBounds } from './layers/MarkerLayer';
+export type { LayerOptions } from './layers/MarkerLayer';
+export { Marker } from './layers/Marker';
+export type { MarkerOptions } from './layers/Marker';
+export { SpriteCache } from './layers/SpriteCache';
 
 // Input
 export { InputController } from './input/InputController';

@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>CanvasMapper — 1000 markers stress test</title>
+        <style>
+            body {
+                margin: 0;
+                font-family: system-ui, sans-serif;
+            }
+            #map {
+                width: 100vw;
+                height: 100vh;
+            }
+            .hud {
+                position: fixed;
+                top: 12px;
+                left: 12px;
+                padding: 8px 12px;
+                background: rgba(15, 20, 32, 0.8);
+                color: #7fd1ff;
+                border-radius: 8px;
+                font: 12px/1.6 monospace;
+                pointer-events: none;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="map"></div>
+        <div class="hud" id="hud">warming up…</div>
+        <script type="module">
+            import { MapEngine } from '../src/index';
+
+            const map = new MapEngine(document.getElementById('map'), {
+                minZoom: -3,
+                maxZoom: 5,
+            });
+            map.setView({ x: 2000, y: 2000, zoom: 0 });
+
+            const players = map.createLayer('players', { zIndex: 2 });
+            const pois = map.createLayer('pois', { zIndex: 1 });
+
+            const COLORS = ['#7fd1ff', '#ffd166', '#ef476f', '#06d6a0'];
+            const movers = [];
+
+            // 1000 player dots; the first 100 drift around like live players
+            for (let i = 0; i < 1000; i++) {
+                const marker = players.addMarker({
+                    x: Math.random() * 4000,
+                    y: Math.random() * 4000,
+                    color: COLORS[i % COLORS.length],
+                    size: 14,
+                    label: i % 50 === 0 ? 'Player ' + i : undefined,
+                });
+                if (i < 100) {
+                    movers.push({
+                        marker,
+                        vx: (Math.random() - 0.5) * 2,
+                        vy: (Math.random() - 0.5) * 2,
+                    });
+                }
+            }
+
+            // 40 points of interest with labels
+            for (let i = 0; i < 40; i++) {
+                pois.addMarker({
+                    x: Math.random() * 4000,
+                    y: Math.random() * 4000,
+                    color: '#06d6a0',
+                    size: 22,
+                    label: 'POI ' + i,
+                });
+            }
+
+            // Simulate a live server pushing position updates
+            setInterval(() => {
+                for (const p of movers) {
+                    p.marker.setPosition(p.marker.x + p.vx * 20, p.marker.y + p.vy * 20);
+                }
+            }, 100);
+
+            map.on('marker:click', ({ marker }) => {
+                console.log('clicked:', marker.label ?? marker.id, marker.x.toFixed(0), marker.y.toFixed(0));
+            });
+
+            // FPS meter
+            const hud = document.getElementById('hud');
+            let frames = 0;
+            let last = performance.now();
+            const fpsLoop = (now) => {
+                frames++;
+                if (now - last >= 1000) {
+                    hud.textContent =
+                        'markers: ' +
+                        (players.count + pois.count) +
+                        '\nlayers: players(z2) + pois(z1)' +
+                        '\nfps: ' +
+                        frames +
+                        '\nclick a marker -> console';
+                    frames = 0;
+                    last = now;
+                }
+                requestAnimationFrame(fpsLoop);
+            };
+            requestAnimationFrame(fpsLoop);
+        </script>
+    </body>
+</html>
