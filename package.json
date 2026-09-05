@@ -7,11 +7,18 @@
     "main": "./dist/canvasmapper.umd.js",
     "module": "./dist/canvasmapper.es.js",
     "types": "./dist/index.d.ts",
+    "bin": {
+        "canvasmapper": "./dist/cli/index.js"
+    },
     "exports": {
         ".": {
             "import": "./dist/canvasmapper.es.js",
             "require": "./dist/canvasmapper.umd.js",
             "types": "./dist/index.d.ts"
+        },
+        "./cli": {
+            "import": "./dist/cli/index.js",
+            "types": "./dist/cli/index.d.ts"
         },
         "./package.json": "./package.json"
     },
@@ -23,14 +30,15 @@
     "scripts": {
         "dev": "vite",
         "build": "rollup -c",
+        "build:cli": "tsc -p tsconfig.cli.json",
         "test": "vitest",
         "test:run": "vitest run",
         "lint": "eslint . --ext .ts,.js --report-unused-disable-directives --max-warnings 0",
         "lint:fix": "eslint . --ext .ts,.js --fix",
         "format": "prettier --write \"**/*.{ts,js,json,md,html}\"",
         "format:check": "prettier --check \"**/*.{ts,js,json,md,html}\"",
-        "check": "npm run lint && npm run format:check && npm run build",
-        "prepublishOnly": "npm run build"
+        "check": "npm run lint && npm run format:check && npm run build && npm run build:cli",
+        "prepublishOnly": "npm run build && npm run build:cli"
     },
     "keywords": [
         "canvas",
@@ -56,8 +64,12 @@
         "url": "https://github.com/akak1y/canvasmapper/issues"
     },
     "homepage": "https://github.com/akak1y/canvasmapper#readme",
+    "dependencies": {
+        "sharp": "^0.33.0"
+    },
     "devDependencies": {
         "@rollup/plugin-typescript": "^11.1.6",
+        "@types/node": "^26.4.1",
         "@typescript-eslint/eslint-plugin": "^8.67.0",
         "@typescript-eslint/parser": "^8.67.0",
         "eslint": "^8.57.0",

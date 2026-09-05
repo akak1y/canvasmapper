@@ -34,3 +34,7 @@ coverage/
 .cache/
 .tmp/
 *.tgz
+
+# Heavy local assets for examples
+examples/assets/world/
+examples/assets/map.jpg

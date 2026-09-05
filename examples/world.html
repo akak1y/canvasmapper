@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>CanvasMapper — sliced world map</title>
+        <style>
+            body {
+                margin: 0;
+            }
+            #map {
+                width: 100vw;
+                height: 100vh;
+            }
+            .hud {
+                position: fixed;
+                top: 12px;
+                left: 12px;
+                padding: 8px 12px;
+                background: rgba(15, 20, 32, 0.8);
+                color: #7fd1ff;
+                border-radius: 8px;
+                font: 12px/1.6 monospace;
+                pointer-events: none;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="map"></div>
+        <div class="hud" id="hud"></div>
+        <script type="module">
+            import { MapEngine, UrlTileSource } from '../src/index';
+
+            // Written by `canvasmapper slice`
+            const manifest = await fetch('/assets/world/manifest.json').then((r) => r.json());
+
+            const worldWidth = manifest.width / 2 ** manifest.maxZoom;
+            const worldHeight = manifest.height / 2 ** manifest.maxZoom;
+
+            const map = new MapEngine(document.getElementById('map'), {
+                minZoom: 0,
+                maxZoom: manifest.maxZoom + 2, // slight overzoom (stretch) allowed
+                source: new UrlTileSource({
+                    urlTemplate: '/assets/world/{z}/{x}_{y}.' + manifest.format,
+                    minNativeZoom: manifest.minZoom,
+                    maxNativeZoom: manifest.maxZoom,
+                }),
+            });
+
+            // Fit the whole map into the viewport on start
+            const fitZoom = Math.min(
+                manifest.maxZoom,
+                Math.log2(Math.min(window.innerWidth / worldWidth, window.innerHeight / worldHeight))
+            );
+            map.setView({ x: worldWidth / 2, y: worldHeight / 2, zoom: fitZoom });
+
+            const hud = document.getElementById('hud');
+            map.on('viewchange', (state) => {
+                hud.textContent =
+                    manifest.width +
+                    'x' +
+                    manifest.height +
+                    ' source' +
+                    '\nzoom: ' +
+                    state.zoom.toFixed(2) +
+                    ' / native ' +
+                    manifest.maxZoom;
+            });
+        </script>
+    </body>
+</html>

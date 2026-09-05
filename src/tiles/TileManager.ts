@@ -102,7 +102,9 @@ export class TileManager {
                 const image = this.cache.get(`${tz}/${x}_${y}`);
                 if (!image) continue;
                 const p = camera.worldToScreen({ x: x * worldSize, y: y * worldSize }, view);
-                ctx.drawImage(image, p.x, p.y, screenTile, screenTile);
+                const w = screenTile * (image.width / this.tileSize);
+                const h = screenTile * (image.height / this.tileSize);
+                ctx.drawImage(image, p.x, p.y, w + 0.5, h + 0.5);
             }
         }
     }
