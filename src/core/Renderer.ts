@@ -1,4 +1,5 @@
 import type { TileManager } from '../tiles/TileManager';
+import type { LayerManager } from '../layers/LayerManager';
 import type { Camera } from './Camera';
 import type { Viewport } from './Viewport';
 
@@ -9,7 +10,8 @@ export class Renderer {
     constructor(
         private readonly viewport: Viewport,
         private readonly camera: Camera,
-        private readonly tiles: TileManager | null = null
+        private readonly tiles: TileManager | null = null,
+        private readonly layers: LayerManager | null = null
     ) {}
 
     render(): void {
@@ -25,6 +27,9 @@ export class Renderer {
             const state = this.camera.getViewState();
             this.tiles.update(state, size); // async loads, no blocking
             this.tiles.draw(ctx, this.camera, size);
+        }
+        if (this.layers) {
+            this.layers.draw(ctx, this.camera, size);
         }
     }
 

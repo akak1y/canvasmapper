@@ -9,6 +9,9 @@ import { TileManager } from '../tiles/TileManager';
 import type { TileSource } from '../tiles/TileSource';
 import { UrlTileSource } from '../tiles/UrlTileSource';
 import { Controls, type ControlsOptions } from '../controls/Controls';
+import { LayerManager } from '../layers/LayerManager';
+import type { MarkerLayer } from '../layers/MarkerLayer';
+import type { LayerOptions } from '../layers/MarkerLayer';
 
 export interface MapEngineOptions {
     tileSize?: number;
@@ -48,6 +51,7 @@ export class MapEngine extends EventEmitter {
     private readonly options: ResolvedOptions;
     private readonly tiles: TileManager;
     private readonly controls: Controls | null;
+    private readonly layers = new LayerManager();
     private homeView: ViewState = { x: 0, y: 0, zoom: 0 };
 
     private dirty = true;
@@ -77,7 +81,10 @@ export class MapEngine extends EventEmitter {
         this.tiles = new TileManager(source, this.options.tileSize, () => {
             this.dirty = true;
         });
-        this.renderer = new Renderer(this.viewport, this.camera, this.tiles);
+        this.layers.onRequestRedraw = () => {
+            this.dirty = true;
+        };
+        this.renderer = new Renderer(this.viewport, this.camera, this.tiles, this.layers);
         this.targetZoom = this.camera.getViewState().zoom;
         this.zoomAnchor = this.center();
 
@@ -94,7 +101,13 @@ export class MapEngine extends EventEmitter {
             },
             onZoom: (delta, anchor) => this.applyZoom(delta, anchor),
             onTap: (screen) => {
-                this.emit('click', { screen, world: this.screenToWorld(screen) });
+                const world = this.screenToWorld(screen);
+                const marker = this.layers.hitTest(screen, this.camera, this.viewport.size);
+                if (marker) {
+                    this.emit('marker:click', { marker, screen, world });
+                    marker.layer?.emit('click', marker);
+                }
+                this.emit('click', { screen, world, marker });
             },
         });
         const controlsRaw = options.controls ?? true;
@@ -150,6 +163,11 @@ export class MapEngine extends EventEmitter {
         this.input.destroy();
         this.viewport.destroy();
         this.controls?.destroy();
+    }
+
+    /** Create a marker layer (drawn in z-index order) */
+    createLayer(name: string, options: LayerOptions = {}): MarkerLayer {
+        return this.layers.createLayer(name, options);
     }
 
     private center(): Point {
