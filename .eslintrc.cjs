@@ -27,4 +27,13 @@ module.exports = {
     'prefer-const': 'error',
     'eqeqeq': ['error', 'always'],
   },
+  overrides: [
+    {
+      // For the CLI, console IS the user interface
+      files: ['src/cli/**/*.ts'],
+      rules: {
+        'no-console': 'off',
+      },
+    },
+  ],
 };
