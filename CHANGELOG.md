@@ -21,3 +21,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Markers and layers: `MarkerLayer` with culling and hit-testing, `SpriteCache`, `LayerManager` with z-index
 - Zoom controls with CSS theming (`:where()` defaults, `--cm-*` variables, stable `.cm-*` class contract)
 - CLI: `canvasmapper slice` — tile pyramid cutter with parallel encoding, per-level timing and ETA
+
+## [1.0.0] - 2026-09-08
+
+### Added
+
+- CLI: `canvasmapper slice` — parallel tile pyramid cutter with per-level timing and ETA
+- CI pipeline (lint/format/build/tests) and tag-based npm release workflow
+- GitHub Pages demos
+- Documentation: getting-started, tile-sources, controls-styling, api-reference
+- Issue and pull-request templates
+
+### Fixed
+
+- Partial edge tiles no longer stretch at low zoom (true aspect ratio drawing)
+- Anti-aliasing seams between neighbouring tiles hidden with 0.5px overlap
+
+### Changed
+
+- `sharp` moved to dependencies (CLI runtime); browser bundle stays zero-dependency

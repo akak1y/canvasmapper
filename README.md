@@ -1,88 +1,78 @@
-EN | [RU](README_RU.md)
-
 # 🗺️ CanvasMapper
 
+[![npm](https://img.shields.io/npm/v/canvasmapper.svg)](https://www.npmjs.com/package/canvasmapper)
+[![CI](https://github.com/akak1y/canvasmapper/actions/workflows/ci.yml/badge.svg)](https://github.com/akak1y/canvasmapper/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Status](https://img.shields.io/badge/status-alpha-orange.svg)](https://github.com/akak1y/canvasmapper)
 
-> High-performance Canvas map engine for large-scale interactive maps
+> High-performance Canvas map engine for large-scale interactive maps.
 
-## 🚧 Status: Alpha
-
-The project is in active development. The API may change without notice.
-
-**Already working:**
-
-- ✅ Smooth pan / zoom (fractional zoom, zoom-to-cursor, inertia)
-- ✅ Tile rendering with viewport culling and LRU cache
-- ✅ Pluggable tile sources (URL template; more on the way)
-- ✅ Retina / HiDPI support, touch support (pan + pinch)
-
-**Coming next:**
-
-- ⏳ Matrix tile source (`x_y.png` grid)
-- ⏳ Single large image source (auto-slicing in a Web Worker)
-- ⏳ Zoom controls with CSS theming
-- ⏳ Markers and layer system
-- ⏳ CLI tile slicer
+Built for maps with thousands of dynamic objects: game admin panels, live
+radars, dashboards. Everything is drawn on a single canvas — no DOM nodes per
+marker, no heavy dependencies. Born in production (RAGE MP admin panel).
 
 ## ✨ Features
 
-- 🚀 **High Performance** - rAF render loop with dirty flag; designed for thousands of markers at 60 FPS
-- 🗺️ **Tile-Based Rendering** - viewport culling, LRU cache, LOD scaling
-- 🔌 **Pluggable Sources** - URL template today; matrix and single-image sources on the roadmap
-- 🎯 **Interactive** - smooth pan/zoom, zoom-to-cursor, inertia
-- 📱 **Touch Support** - pan and pinch-zoom on mobile devices
-- ⚡ **Zero Dependencies** - lightweight, no external libraries required
-- 🔧 **TypeScript** - full type definitions included
+- 🚀 rAF render loop with dirty flag — idle costs ~0 CPU
+- 🗺️ Tile rendering: viewport culling, LRU cache, in-flight dedup, LOD clamping
+- 🔌 Pluggable sources: URL pyramid, flat matrix, single big image
+- 🎯 Markers & layers with culling, sprite cache and hit-testing (1000+ at 60 FPS)
+- 🖱️ Smooth fractional zoom, zoom-to-cursor, inertia, touch & pinch
+- 🎨 Zoom controls with CSS theming — your CSS always wins
+- 📱 Retina/HiDPI aware
+- 🧰 CLI: slice any image into a tile pyramid
+- ⚡ Zero runtime dependencies in the browser; full TypeScript types
 
-## 📦 Installation
-
-Not published to npm yet (alpha). For now:
+## 📦 Install
 
 ```bash
-git clone https://github.com/akak1y/canvasmapper.git
-cd canvasmapper
-npm install
-npm run build
+npm install canvasmapper
 ```
 
-Then either `npm link` it into your project, or include `dist/canvasmapper.umd.js` with a `<script>` tag.
+Or via script tag (UMD):
 
-`npm install canvasmapper` will work once we hit beta.
+```html
+<script src="https://unpkg.com/canvasmapper/dist/canvasmapper.umd.js"></script>
+```
 
-## 🚀 Quick Start
+## 🚀 Quick start
 
 ```javascript
 import { MapEngine, UrlTileSource } from 'canvasmapper';
 
 const map = new MapEngine(document.getElementById('map'), {
-    minZoom: 0,
-    maxZoom: 10,
     source: new UrlTileSource({ urlTemplate: '/tiles/{z}/{x}_{y}.png' }),
 });
-
 map.setView({ x: 0, y: 0, zoom: 2 });
-
-map.on('click', (e) => console.log(e.world));
 ```
+
+## 🧰 CLI
+
+```bash
+npm install -g canvasmapper
+canvasmapper slice -i map.jpg -o ./tiles -s 256 -f jpeg -q 80
+```
+
+## 📚 Docs
+
+- [Getting Started](docs/getting-started.md)
+- [Tile Sources](docs/tile-sources.md)
+- [Controls & CSS Theming](docs/controls-styling.md)
+- [API Reference](docs/api-reference.md)
 
 ## 🧪 Development
 
 ```bash
-npm run dev     # demos at http://localhost:3000 (and /basic-url.html)
-npm run test    # unit tests
-npm run check   # lint + format check + build
+npm run dev      # demos at http://localhost:3000
+npm run test     # vitest watch mode
+npm run check    # lint + format + build + build:cli
 ```
 
-## 📚 Documentation
+## 🛣️ Roadmap
 
-Coming soon...
-
-## 🤝 Contributing
-
-Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+- PMTiles source (one file, HTTP range requests)
+- Object pooling for ephemeral effects (pings, shots)
+- Trusted Publishing for releases
 
 ## 📄 License
 
-MIT © [akak1y](LICENSE)
+MIT © akak1y
