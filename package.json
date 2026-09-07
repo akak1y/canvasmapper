@@ -1,6 +1,6 @@
 {
     "name": "canvasmapper",
-    "version": "0.1.0-beta.1",
+    "version": "1.0.0",
     "description": "High-performance Canvas map engine for large-scale interactive maps",
     "type": "module",
     "sideEffects": false,
