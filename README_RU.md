@@ -1,55 +1,38 @@
-[EN](README.md) | RU
-
 # 🗺️ CanvasMapper
 
+[![npm](https://img.shields.io/npm/v/canvasmapper.svg)](https://www.npmjs.com/package/canvasmapper)
+[![CI](https://github.com/akak1y/canvasmapper/actions/workflows/ci.yml/badge.svg)](https://github.com/akak1y/canvasmapper/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Status](https://img.shields.io/badge/status-alpha-orange.svg)](https://github.com/akak1y/canvasmapper)
 
-> Высокопроизводительный движок карт на HTML5 Canvas для больших интерактивных карт
+> Высокопроизводительный движок карт на HTML5 Canvas для больших интерактивных карт.
 
-## 🚧 Статус: Alpha
-
-Проект в активной разработке. API может измениться без предупреждения.
-
-**Уже работает:**
-
-- ✅ Плавный пан/зум (дробный зум, зум к курсору, инерция)
-- ✅ Тайловый рендеринг с отсечением невидимого и LRU-кэшем
-- ✅ Подключаемые источники тайлов (URL-шаблон; остальные на подходе)
-- ✅ Retina / HiDPI, тач (пан и pinch-зум)
-
-**Впереди:**
-
-- ⏳ Источник-матрица (`x_y.png`)
-- ⏳ Одна большая картинка (автонарезка в Web Worker)
-- ⏳ Кнопки зума с кастомным CSS
-- ⏳ Маркеры и система слоёв
-- ⏳ CLI-слайсер тайлов
+Создан для карт с тысячами динамических объектов: игровые админки, живые
+радары, дашборды. Всё рисуется на одном canvas — без DOM-узлов на маркер и
+без тяжёлых зависимостей. Родился в production (админка RAGE MP).
 
 ## ✨ Возможности
 
-- 🚀 **Производительность** - rAF-цикл с dirty flag; цель — тысячи маркеров при 60 FPS
-- 🗺️ **Тайловый рендеринг** - culling, LRU-кэш, LOD-масштабирование
-- 🔌 **Сменные источники** - URL-шаблон сегодня; матрица и одиночная картинка в роадмапе
-- 🎯 **Интерактивность** - плавный пан/зум, зум к курсору, инерция
-- 📱 **Тач-поддержка** - пан и pinch-зум на мобильных
-- ⚡ **Ноль зависимостей** - лёгкая библиотека без внешних пакетов
-- 🔧 **TypeScript** - полные типы в комплекте
+- 🚀 rAF-цикл с dirty flag — в простое ~0 CPU
+- 🗺️ Тайлы: culling, LRU-кэш, дедупликация запросов, LOD-клампинг
+- 🔌 Сменные источники: URL-пирамида, плоская матрица, одна большая картинка
+- 🎯 Маркеры и слои: culling, кэш спрайтов, hit-test (1000+ при 60 FPS)
+- 🖱️ Плавный дробный зум, зум к курсору, инерция, тач и pinch
+- 🎨 Кнопки зума с CSS-темизацией — твой CSS побеждает всегда
+- 📱 Retina/HiDPI
+- 🧰 CLI: нарезка любой картинки в пирамиду тайлов
+- ⚡ Ноль runtime-зависимостей в браузере; полные типы TypeScript
 
 ## 📦 Установка
 
-Пакет ещё не опубликован в npm (альфа). Пока так:
-
 ```bash
-git clone https://github.com/akak1y/canvasmapper.git
-cd canvasmapper
-npm install
-npm run build
+npm install canvasmapper
 ```
 
-Затем подключи через `npm link` в свой проект или подключи `dist/canvasmapper.umd.js` через `<script>`.
+Или через script tag (UMD):
 
-С беты заработает `npm install canvasmapper`.
+```html
+<script src="https://unpkg.com/canvasmapper/dist/canvasmapper.umd.js"></script>
+```
 
 ## 🚀 Быстрый старт
 
@@ -57,32 +40,39 @@ npm run build
 import { MapEngine, UrlTileSource } from 'canvasmapper';
 
 const map = new MapEngine(document.getElementById('map'), {
-    minZoom: 0,
-    maxZoom: 10,
     source: new UrlTileSource({ urlTemplate: '/tiles/{z}/{x}_{y}.png' }),
 });
-
 map.setView({ x: 0, y: 0, zoom: 2 });
-
-map.on('click', (e) => console.log(e.world));
 ```
 
-## 🧪 Разработка
+## 🧰 CLI
 
 ```bash
-npm run dev     # демки: http://localhost:3000 и /basic-url.html
-npm run test    # юнит-тесты
-npm run check   # lint + проверка форматирования + сборка
+npm install -g canvasmapper
+canvasmapper slice -i map.jpg -o ./tiles -s 256 -f jpeg -q 80
 ```
 
 ## 📚 Документация
 
-Скоро...
+- [Быстрый старт](docs/getting-started.md)
+- [Источники тайлов](docs/tile-sources.md)
+- [Кнопки и CSS-темизация](docs/controls-styling.md)
+- [API Reference](docs/api-reference.md)
 
-## 🤝 Участие в разработке
+## 🧪 Разработка
 
-Пулл-реквесты приветствуются! Подробности — в [CONTRIBUTING.md](CONTRIBUTING.md).
+```bash
+npm run dev      # демки на http://localhost:3000
+npm run test     # vitest в watch-режиме
+npm run check    # lint + format + build + build:cli
+```
+
+## 🛣️ Роадмап
+
+- Источник PMTiles (один файл, HTTP range-запросы)
+- Object pooling для эфемерных эффектов (пинги, выстрелы)
+- Trusted Publishing для релизов
 
 ## 📄 Лицензия
 
-MIT © [akak1y](LICENSE)
+MIT © akak1y

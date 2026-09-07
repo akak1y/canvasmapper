@@ -32,7 +32,12 @@
             import { MapEngine, UrlTileSource } from '../src/index';
 
             // Written by `canvasmapper slice`
-            const manifest = await fetch('/assets/world/manifest.json').then((r) => r.json());
+            const response = await fetch('assets/world/manifest.json');
+            if (!response.ok) {
+                document.getElementById('hud').textContent = 'Local-only demo: run `canvasmapper slice` + `npm run dev` to see this map.';
+                throw new Error('world tiles are not published');
+            }
+            const manifest = await response.json();
 
             const worldWidth = manifest.width / 2 ** manifest.maxZoom;
             const worldHeight = manifest.height / 2 ** manifest.maxZoom;
