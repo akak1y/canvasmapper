@@ -3,69 +3,115 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>CanvasMapper Example</title>
+        <title>CanvasMapper — demos</title>
         <style>
             body {
                 margin: 0;
+                background: #0f1420;
+                color: #e6edf3;
                 font-family: system-ui, sans-serif;
             }
-            #map {
-                width: 100vw;
-                height: 100vh;
+            main {
+                max-width: 960px;
+                margin: 0 auto;
+                padding: 48px 20px;
             }
-            .hud {
-                position: fixed;
-                top: 12px;
-                left: 12px;
-                padding: 8px 12px;
-                background: rgba(15, 20, 32, 0.8);
+            h1 {
+                font-size: 32px;
+            }
+            .sub {
+                color: #8b98a5;
+                margin-bottom: 32px;
+            }
+            .sub a {
                 color: #7fd1ff;
-                border-radius: 8px;
-                font: 12px/1.4 monospace;
-                pointer-events: none;
+            }
+            .grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+                gap: 16px;
+            }
+            .card {
+                display: block;
+                padding: 18px;
+                border-radius: 12px;
+                background: #1a2233;
+                color: inherit;
+                text-decoration: none;
+                border: 1px solid #2a3550;
+            }
+            .card:hover {
+                border-color: #7fd1ff;
+            }
+            .card h2 {
+                margin: 0 0 6px;
+                font-size: 17px;
+            }
+            .card p {
+                margin: 0 0 10px;
+                color: #8b98a5;
+                font-size: 13px;
+            }
+            .tag {
+                font: 11px monospace;
+                padding: 2px 8px;
+                border-radius: 999px;
+            }
+            .tag.online {
+                background: #06301f;
+                color: #06d6a0;
+            }
+            .tag.local {
+                background: #3a2a10;
+                color: #ffd166;
             }
         </style>
     </head>
     <body>
-        <div id="map"></div>
-        <div class="hud" id="hud"></div>
-        <script type="module">
-            import { MapEngine } from '../src/index';
-
-            /** Procedural tile source: draws tiles on the fly, no server needed */
-            class DemoTileSource {
-                minNativeZoom = 0;
-                maxNativeZoom = 5;
-
-                async getTile({ z, x, y }) {
-                    // Small delay so you can watch tiles pop in while panning
-                    await new Promise((r) => setTimeout(r, 60));
-                    const canvas = document.createElement('canvas');
-                    canvas.width = canvas.height = 256;
-                    const g = canvas.getContext('2d');
-                    g.fillStyle = 'hsl(' + ((x * 40 + y * 10) % 360) + ' 40% ' + (20 + ((x + y) % 5) * 5) + '%)';
-                    g.fillRect(0, 0, 256, 256);
-                    g.strokeStyle = 'rgba(255,255,255,0.25)';
-                    g.strokeRect(0.5, 0.5, 255, 255);
-                    g.fillStyle = '#fff';
-                    g.font = '18px monospace';
-                    g.fillText(z + '/' + x + '_' + y, 20, 150);
-                    return canvas;
-                }
-            }
-
-            const map = new MapEngine(document.getElementById('map'), {
-                minZoom: -2,
-                maxZoom: 7,
-                source: new DemoTileSource(),
-            });
-
-            map.setView({ x: 0, y: 0, zoom: 0 });
-
-            map.on('viewchange', (state) => {
-                document.getElementById('hud').textContent =
-                    'x: ' + state.x.toFixed(0) + '  y: ' + state.y.toFixed(0) + '  zoom: ' + state.zoom.toFixed(2);
-            });
-        </script>
+        <main>
+            <h1>🗺️ CanvasMapper demos</h1>
+            <p class="sub">
+                Zero-dependency Canvas map engine ·
+                <a href="https://github.com/akak1y/canvasmapper">GitHub</a> ·
+                <a href="https://www.npmjs.com/package/canvasmapper">npm</a>
+            </p>
+            <div class="grid">
+                <a class="card" href="./showcase.html"
+                    ><h2>🌍 Showcase</h2>
+                    <p>OSM tiles + 400 live markers + layers + themed controls + FPS HUD</p>
+                    <span class="tag online">works online</span></a
+                >
+                <a class="card" href="./markers.html"
+                    ><h2>🎯 1000 markers</h2>
+                    <p>Stress test with live movers and FPS meter</p>
+                    <span class="tag online">works online</span></a
+                >
+                <a class="card" href="./single-image.html"
+                    ><h2>🖼️ Single image</h2>
+                    <p>On-the-fly slicing of one big image + IndexedDB cache</p>
+                    <span class="tag online">works online</span></a
+                >
+                <a class="card" href="./basic-url.html"
+                    ><h2>🧩 URL tiles</h2>
+                    <p>Plain OSM tile pyramid</p>
+                    <span class="tag online">works online</span></a
+                >
+                <a class="card" href="./procedural.html"
+                    ><h2>🎨 Procedural</h2>
+                    <p>Generated tiles, zero network</p>
+                    <span class="tag online">works online</span></a
+                >
+                <a class="card" href="./world.html"
+                    ><h2>🗺️ Sliced world</h2>
+                    <p>CLI-generated pyramid (21600×10800)</p>
+                    <span class="tag local">local assets</span></a
+                >
+                <a class="card" href="./matrix.html"
+                    ><h2>🔢 Matrix</h2>
+                    <p>Flat row-column file grid</p>
+                    <span class="tag local">local assets</span></a
+                >
+            </div>
+        </main>
     </body>
 </html>

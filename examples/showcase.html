@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>CanvasMapper — Showcase</title>
+        <style>
+            body {
+                margin: 0;
+            }
+            #map {
+                width: 100vw;
+                height: 100vh;
+            }
+            /* Live demonstration of controls theming: variables + plain overrides */
+            :root {
+                --cm-btn-bg: #24435c;
+                --cm-btn-color: #ffd166;
+                --cm-btn-radius: 999px;
+            }
+            .hud {
+                position: fixed;
+                top: 12px;
+                left: 12px;
+                padding: 10px 14px;
+                background: rgba(15, 20, 32, 0.82);
+                color: #7fd1ff;
+                border-radius: 10px;
+                font: 12px/1.7 monospace;
+                pointer-events: none;
+                max-width: 340px;
+                white-space: pre-line;
+            }
+            .hud button {
+                pointer-events: auto;
+                margin-top: 6px;
+                cursor: pointer;
+                background: #24435c;
+                color: #ffd166;
+                border: 0;
+                border-radius: 999px;
+                padding: 4px 12px;
+                font: 12px monospace;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="map"></div>
+        <div class="hud" id="hud"></div>
+        <script type="module">
+            import { MapEngine, UrlTileSource } from '../src/index';
+
+            const map = new MapEngine(document.getElementById('map'), {
+                minZoom: 2,
+                maxZoom: 18,
+                source: new UrlTileSource({
+                    urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}_{y}.png',
+                }),
+                controls: { position: 'topright' },
+            });
+            // Europe center in z0 pixel = world units
+            map.setView({ x: 139, y: 87, zoom: 5 });
+
+            const players = map.createLayer('players', { zIndex: 2 });
+            const pois = map.createLayer('pois', { zIndex: 1 });
+
+            const COLORS = ['#7fd1ff', '#ffd166', '#ef476f', '#06d6a0'];
+            const movers = [];
+            for (let i = 0; i < 400; i++) {
+                const marker = players.addMarker({
+                    x: 139 + (Math.random() - 0.5) * 50,
+                    y: 87 + (Math.random() - 0.5) * 30,
+                    color: COLORS[i % COLORS.length],
+                    size: 12,
+                    label: i % 40 === 0 ? 'Player ' + i : undefined,
+                    data: { id: i },
+                });
+                if (i < 80) {
+                    movers.push({
+                        marker,
+                        vx: (Math.random() - 0.5) * 0.1,
+                        vy: (Math.random() - 0.5) * 0.1,
+                    });
+                }
+            }
+            const CITIES = [
+                ['London', 126.6, 78.5],
+                ['Paris', 128.0, 80.5],
+                ['Berlin', 131.4, 77.6],
+                ['Madrid', 124.2, 85.0],
+                ['Rome', 132.6, 84.6],
+                ['Moscow', 137.6, 74.0],
+                ['Cairo', 135.7, 90.6],
+                ['Ankara', 138.9, 85.9],
+            ];
+            for (const [name, x, y] of CITIES) {
+                pois.addMarker({ x, y, color: '#06d6a0', size: 20, label: name });
+            }
+
+            setInterval(() => {
+                for (const p of movers) {
+                    p.marker.setPosition(p.marker.x + p.vx, p.marker.y + p.vy);
+                }
+            }, 100);
+
+            let lastClick = 'click a marker…';
+            map.on('marker:click', ({ marker }) => {
+                lastClick =
+                    'clicked: ' + (marker.label ?? 'player #' + marker.data.id) + ' @ ' + marker.x.toFixed(1) + ', ' + marker.y.toFixed(1);
+            });
+
+            const hud = document.getElementById('hud');
+            const btn = document.createElement('button');
+            btn.textContent = 'pois: on';
+            btn.onclick = () => {
+                if (pois.visible) pois.hide();
+                else pois.show();
+                btn.textContent = 'pois: ' + (pois.visible ? 'on' : 'off');
+            };
+            hud.after(btn);
+            btn.style.position = 'fixed';
+            btn.style.top = '150px';
+            btn.style.left = '12px';
+
+            let frames = 0;
+            let last = performance.now();
+            const loop = (now) => {
+                frames++;
+                if (now - last >= 1000) {
+                    const s = map.getView();
+                    hud.textContent =
+                        'fps: ' +
+                        frames +
+                        '\nzoom: ' +
+                        s.zoom.toFixed(2) +
+                        '\nmarkers: ' +
+                        (players.count + pois.count) +
+                        '\nlayers: players(z2) + pois(z1)' +
+                        '\n' +
+                        lastClick;
+                    frames = 0;
+                    last = now;
+                }
+                requestAnimationFrame(loop);
+            };
+            requestAnimationFrame(loop);
+        </script>
+    </body>
+</html>
