@@ -1,8 +1,6 @@
-# 🗺️ CanvasMapper
+[EN](../../README.md) | RU | [ZH](README_ZH-CN.md) | [ES](README_ES.md) | [JA](README_JA.md) | [PT-BR](README_PT-BR.md) | [FR](README_FR.md)
 
-[![npm](https://img.shields.io/npm/v/canvasmapper.svg)](https://www.npmjs.com/package/canvasmapper)
-[![CI](https://github.com/akak1y/canvasmapper/actions/workflows/ci.yml/badge.svg)](https://github.com/akak1y/canvasmapper/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+# 🗺️ CanvasMapper
 
 > Высокопроизводительный движок карт на HTML5 Canvas для больших интерактивных карт.
 
@@ -71,7 +69,7 @@ npm run check    # lint + format + build + build:cli
 
 - Источник PMTiles (один файл, HTTP range-запросы)
 - Object pooling для эфемерных эффектов (пинги, выстрелы)
-- Trusted Publishing для релизов
+- Декодирование тайлов в Web Worker
 
 ## 📄 Лицензия
 

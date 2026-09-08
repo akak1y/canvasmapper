@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>CanvasMapper Example</title>
+        <style>
+            body {
+                margin: 0;
+                font-family: system-ui, sans-serif;
+            }
+            #map {
+                width: 100vw;
+                height: 100vh;
+            }
+            .hud {
+                position: fixed;
+                top: 12px;
+                left: 12px;
+                padding: 8px 12px;
+                background: rgba(15, 20, 32, 0.8);
+                color: #7fd1ff;
+                border-radius: 8px;
+                font: 12px/1.4 monospace;
+                pointer-events: none;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="map"></div>
+        <div class="hud" id="hud"></div>
+        <script type="module">
+            import { MapEngine } from '../src/index';
+
+            /** Procedural tile source: draws tiles on the fly, no server needed */
+            class DemoTileSource {
+                minNativeZoom = 0;
+                maxNativeZoom = 5;
+
+                async getTile({ z, x, y }) {
+                    // Small delay so you can watch tiles pop in while panning
+                    await new Promise((r) => setTimeout(r, 60));
+                    const canvas = document.createElement('canvas');
+                    canvas.width = canvas.height = 256;
+                    const g = canvas.getContext('2d');
+                    g.fillStyle = 'hsl(' + ((x * 40 + y * 10) % 360) + ' 40% ' + (20 + ((x + y) % 5) * 5) + '%)';
+                    g.fillRect(0, 0, 256, 256);
+                    g.strokeStyle = 'rgba(255,255,255,0.25)';
+                    g.strokeRect(0.5, 0.5, 255, 255);
+                    g.fillStyle = '#fff';
+                    g.font = '18px monospace';
+                    g.fillText(z + '/' + x + '_' + y, 20, 150);
+                    return canvas;
+                }
+            }
+
+            const map = new MapEngine(document.getElementById('map'), {
+                minZoom: -2,
+                maxZoom: 7,
+                source: new DemoTileSource(),
+            });
+
+            map.setView({ x: 0, y: 0, zoom: 0 });
+
+            map.on('viewchange', (state) => {
+                document.getElementById('hud').textContent =
+                    'x: ' + state.x.toFixed(0) + '  y: ' + state.y.toFixed(0) + '  zoom: ' + state.zoom.toFixed(2);
+            });
+        </script>
+    </body>
+</html>
