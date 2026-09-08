@@ -1,6 +1,6 @@
-# 🗺️ CanvasMapper
-
 [EN](../../README.md) | [RU](README_RU.md) | [ZH](README_ZH-CN.md) | [ES](README_ES.md) | [JA](README_JA.md) | [PT-BR](README_PT-BR.md) | FR
+
+# 🗺️ CanvasMapper
 
 > Version française. Le texte de référence est la [version anglaise](../../README.md) ; en cas de divergence, c'est elle qui fait foi.
 

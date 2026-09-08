@@ -1,6 +1,6 @@
-# 🗺️ CanvasMapper
-
 [EN](../../README.md) | [RU](README_RU.md) | [ZH](README_ZH-CN.md) | [ES](README_ES.md) | JA | [PT-BR](README_PT-BR.md) | [FR](README_FR.md)
+
+# 🗺️ CanvasMapper
 
 > 日本語版。正典は[英語版](../../README.md)であり、差異がある場合は英語版が優先されます。
 
