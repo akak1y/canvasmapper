@@ -22,7 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Zoom controls with CSS theming (`:where()` defaults, `--cm-*` variables, stable `.cm-*` class contract)
 - CLI: `canvasmapper slice` — tile pyramid cutter with parallel encoding, per-level timing and ETA
 
-## [1.0.0] - 2026-09-08
+## [1.0.0] - 2026-09-07
 
 ### Added
 
@@ -40,3 +40,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - `sharp` moved to dependencies (CLI runtime); browser bundle stays zero-dependency
+
+## [1.0.1] - 2026-09-08
+
+### Added
+
+- `npm run size` — gzip size reporter for the ES bundle (static bundle-size badge)
+- README translations: zh-CN, es, ja, pt-BR, fr under `docs/i18n/`
+- Showcase demo (OSM tiles + live markers + layers + themed controls) and demo hub landing
+
+### Fixed
+
+- Vite build target raised to es2022: top-level await in demos broke the GitHub Pages build
