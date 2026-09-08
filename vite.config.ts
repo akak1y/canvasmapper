@@ -10,6 +10,7 @@ export default defineConfig({
     root: 'examples',
     server: { port: 3000 },
     build: {
+        target: 'es2022',
         rollupOptions: { input: Object.fromEntries(pages) },
     },
 });
