@@ -32,6 +32,7 @@
         "build": "rollup -c",
         "build:cli": "tsc -p tsconfig.cli.json",
         "size": "node scripts/size.mjs",
+        "version": "node scripts/sync-version.mjs",
         "test": "vitest",
         "test:run": "vitest run",
         "lint": "eslint . --ext .ts,.js --report-unused-disable-directives --max-warnings 0",
