@@ -40,4 +40,4 @@ export { SpriteCache } from './layers/SpriteCache';
 export { InputController } from './input/InputController';
 
 // Version
-export const VERSION = '1.0.1';
+export const VERSION = '1.0.2';

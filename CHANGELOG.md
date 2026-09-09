@@ -52,3 +52,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Vite build target raised to es2022: top-level await in demos broke the GitHub Pages build
+
+## [1.0.2] - 2026-09-09
+
+### Fixed
+
+- Tile LOD off-by-one: index math and the `{z}` URL placeholder now share one sampling zoom; no more out-of-pyramid requests
+- Viewport clamping uses source-reported grid sizes (`TileSource.getGridSize`, optional with slippy fallback): MatrixTileSource and SingleImageSource render in full again
+- Out-of-grid tile coordinates are rejected before any network I/O
+- `tiles.draw` receives ViewState from Renderer; map redraws as soon as a tile finishes loading
+- Showcase demo: OSM URL template corrected (`{z}/{x}/{y}`) and OSM attribution added
+
+### Added
+
+- `wrapX` option for horizontally wrapping worlds
+- Regression tests with exact expected tile ranges
