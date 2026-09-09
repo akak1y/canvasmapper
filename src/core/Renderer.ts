@@ -26,7 +26,7 @@ export class Renderer {
         if (this.tiles) {
             const state = this.camera.getViewState();
             this.tiles.update(state, size); // async loads, no blocking
-            this.tiles.draw(ctx, this.camera, size);
+            this.tiles.draw(ctx, state, size);
         }
         if (this.layers) {
             this.layers.draw(ctx, this.camera, size);

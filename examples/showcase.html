@@ -42,11 +42,27 @@
                 padding: 4px 12px;
                 font: 12px monospace;
             }
+            .attribution {
+                position: fixed;
+                right: 8px;
+                bottom: 8px;
+                padding: 2px 6px;
+                background: rgba(15, 20, 32, 0.7);
+                color: #8b98a5;
+                font:
+                    11px system-ui,
+                    sans-serif;
+                border-radius: 4px;
+            }
+            .attribution a {
+                color: #7fd1ff;
+            }
         </style>
     </head>
     <body>
         <div id="map"></div>
         <div class="hud" id="hud"></div>
+        <div class="attribution">© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors</div>
         <script type="module">
             import { MapEngine, UrlTileSource } from '../src/index';
 
@@ -54,7 +70,7 @@
                 minZoom: 2,
                 maxZoom: 18,
                 source: new UrlTileSource({
-                    urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}_{y}.png',
+                    urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                 }),
                 controls: { position: 'topright' },
             });
@@ -83,17 +99,25 @@
                     });
                 }
             }
+            // Web Mercator: lon/lat -> world units (z0 pixels of the 256x256 world)
+            const project = (lon, lat) => {
+                const x = ((lon + 180) / 360) * 256;
+                const s = Math.sin((lat * Math.PI) / 180);
+                const y = (0.5 - Math.log((1 + s) / (1 - s)) / (4 * Math.PI)) * 256;
+                return { x, y };
+            };
             const CITIES = [
-                ['London', 126.6, 78.5],
-                ['Paris', 128.0, 80.5],
-                ['Berlin', 131.4, 77.6],
-                ['Madrid', 124.2, 85.0],
-                ['Rome', 132.6, 84.6],
-                ['Moscow', 137.6, 74.0],
-                ['Cairo', 135.7, 90.6],
-                ['Ankara', 138.9, 85.9],
+                ['London', -0.128, 51.507],
+                ['Paris', 2.352, 48.857],
+                ['Berlin', 13.405, 52.52],
+                ['Madrid', -3.703, 40.417],
+                ['Rome', 12.496, 41.902],
+                ['Moscow', 37.617, 55.756],
+                ['Cairo', 31.236, 30.044],
+                ['Ankara', 32.859, 39.933],
             ];
-            for (const [name, x, y] of CITIES) {
+            for (const [name, lon, lat] of CITIES) {
+                const { x, y } = project(lon, lat);
                 pois.addMarker({ x, y, color: '#06d6a0', size: 20, label: name });
             }
 

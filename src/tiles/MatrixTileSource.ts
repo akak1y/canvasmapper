@@ -63,7 +63,20 @@ export class MatrixTileSource implements TileSource {
         return coord.x >= 0 && coord.y >= 0 && coord.x < this.cols && coord.y < this.rows;
     }
 
+    getGridSize(_z: number): { cols: number; rows: number } {
+        // Matrix lives at one zoom level. Grid size is constant;
+        // when cols/rows are unknown we return MAX_SAFE_INTEGER so
+        // TileManager's clamp never hides tiles prematurely.
+        const cols = this.cols ?? Number.MAX_SAFE_INTEGER;
+        const rows = this.rows ?? Number.MAX_SAFE_INTEGER;
+        return { cols, rows };
+    }
+
     async getTile(coord: TileCoord): Promise<TileImage> {
+        const grid = this.getGridSize(coord.z);
+        if (coord.x < 0 || coord.x >= grid.cols || coord.y < 0 || coord.y >= grid.rows) {
+            return Promise.reject(new Error(`tile ${coord.z}/${coord.x}_${coord.y} is outside the matrix`));
+        }
         const image = await loadImage(this.getUrl(coord.x, coord.y));
         this.noteTileSize(coord, tileImageSize(image));
         return image;

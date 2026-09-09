@@ -8,7 +8,7 @@ const view: Size = { width: 512, height: 512 };
 describe('computeVisibleRange', () => {
     it('returns 3x3 tiles for a 512px viewport at zoom 0', () => {
         const range = computeVisibleRange({ x: 0, y: 0, zoom: 0 }, view, 256, 0);
-        expect(range).toEqual({ minX: -1, maxX: 1, minY: -1, maxY: 1 });
+        expect(range).toEqual({ minX: -1, maxX: 1, minY: -1, maxY: 1, n: 1 });
     });
 
     it('keeps the range consistent when zoomed in', () => {

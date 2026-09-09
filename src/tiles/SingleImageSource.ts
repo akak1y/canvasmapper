@@ -72,7 +72,21 @@ export class SingleImageSource implements TileSource {
         return coord.x >= 0 && coord.y >= 0 && coord.x < this.cols && coord.y < this.rows;
     }
 
+    getGridSize(_z: number): { cols: number; rows: number } {
+        // Before measureImage resolves: no clamp — let the request attempt
+        // and fail into the negative cache. After: exact grid dimensions.
+        if (!this.imageDimensions) {
+            return { cols: Number.MAX_SAFE_INTEGER, rows: Number.MAX_SAFE_INTEGER };
+        }
+        return { cols: this.cols, rows: this.rows };
+    }
+
     async getTile(coord: TileCoord): Promise<TileImage> {
+        const grid = this.getGridSize(coord.z);
+        if (coord.x < 0 || coord.x >= grid.cols || coord.y < 0 || coord.y >= grid.rows) {
+            return Promise.reject(new Error(`tile ${coord.z}/${coord.x}_${coord.y} is outside the image`));
+        }
+
         // 1. Try IndexedDB cache first
         const cacheKey = `${coord.z}/${coord.x}_${coord.y}`;
         if (this.cache) {

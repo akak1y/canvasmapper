@@ -1,4 +1,4 @@
-import type { Camera, ViewState } from '../core/Camera';
+import type { ViewState } from '../core/Camera';
 import type { Size } from '../types';
 import { clamp } from '../utils/math';
 import { TileCache } from './TileCache';
@@ -9,33 +9,46 @@ export interface TileRange {
     maxX: number;
     minY: number;
     maxY: number;
+    n: number;
 }
 
-const key = (coord: TileCoord): string => `${coord.z}/${coord.x}_${coord.y}`;
+export interface VisibleTile {
+    z: number;
+    x: number;
+    y: number;
+    dx: number;
+    dy: number;
+}
+
+const coordKey = (coord: TileCoord): string => `${coord.z}/${coord.x}_${coord.y}`;
 
 /**
- * Pure math: which tile indices intersect the viewport at integer zoom tz.
- * Exported separately for unit tests.
+ * Raw viewport∩pyramid range at sampling level tz.
+ * Indices may be negative or >= n: slippy semantics (wrap X / skip Y)
+ * are applied by the caller, so LOD math and the {z} placeholder
+ * always agree on the same tz.
  */
 export function computeVisibleRange(state: ViewState, view: Size, tileSize: number, tz: number): TileRange {
-    const scale = Math.pow(2, state.zoom);
-    const halfW = view.width / 2 / scale;
-    const halfH = view.height / 2 / scale;
-    const worldSize = tileSize / Math.pow(2, tz);
+    const worldPerTile = tileSize / Math.pow(2, tz);
+    const worldPerScreen = Math.pow(2, -state.zoom);
+    const halfW = (view.width / 2) * worldPerScreen;
+    const halfH = (view.height / 2) * worldPerScreen;
     return {
-        minX: Math.floor((state.x - halfW) / worldSize),
-        maxX: Math.floor((state.x + halfW) / worldSize),
-        minY: Math.floor((state.y - halfH) / worldSize),
-        maxY: Math.floor((state.y + halfH) / worldSize),
+        minX: Math.floor((state.x - halfW) / worldPerTile),
+        maxX: Math.floor((state.x + halfW) / worldPerTile),
+        minY: Math.floor((state.y - halfH) / worldPerTile),
+        maxY: Math.floor((state.y + halfH) / worldPerTile),
+        n: Math.pow(2, tz),
     };
 }
 
 /**
  * Loads, caches and draws map tiles for the current view.
+ * Works with a plain ViewState: the engine passes camera state, not a camera object.
  */
 export class TileManager {
     private readonly cache: TileCache<TileImage>;
-    private readonly inFlight = new Map<string, Promise<TileImage>>();
+    private readonly inFlight = new Map<string, Promise<unknown>>();
     private readonly failed = new Set<string>();
     private readonly minNative: number;
     private readonly maxNative: number;
@@ -58,54 +71,64 @@ export class TileManager {
 
     /** Kick off loads for visible tiles we don't have yet */
     update(state: ViewState, view: Size): void {
-        const tz = this.tileZoomFor(state.zoom);
-        const range = computeVisibleRange(state, view, this.tileSize, tz);
+        for (const t of this.visibleTiles(state, view)) {
+            const k = coordKey({ z: t.z, x: t.x, y: t.y });
+            if (this.cache.get(k) || this.inFlight.has(k) || this.failed.has(k)) continue;
 
-        // Safety valve: never issue a crazy amount of requests at once
-        if ((range.maxX - range.minX + 1) * (range.maxY - range.minY + 1) > 512) return;
-
-        for (let x = range.minX; x <= range.maxX; x++) {
-            for (let y = range.minY; y <= range.maxY; y++) {
-                const coord: TileCoord = { z: tz, x, y };
-                const k = key(coord);
-                if (this.source.hasTile && !this.source.hasTile(coord)) continue;
-                if (this.cache.has(k) || this.inFlight.has(k) || this.failed.has(k)) continue;
-
-                const promise = this.source.getTile(coord);
-                this.inFlight.set(k, promise);
-                promise
-                    .then((image) => {
-                        this.cache.set(k, image);
-                        this.onRequestRedraw(); // tile arrived -> frame is dirty
-                    })
-                    .catch(() => {
-                        // Negative cache: don't re-request missing tiles every frame
-                        this.failed.add(k);
-                    })
-                    .finally(() => {
-                        this.inFlight.delete(k);
-                    });
-            }
+            const promise = this.source
+                .getTile({ z: t.z, x: t.x, y: t.y })
+                .then((image) => {
+                    this.cache.set(k, image);
+                    this.inFlight.delete(k);
+                    this.onRequestRedraw();
+                })
+                .catch(() => {
+                    this.failed.add(k);
+                    this.inFlight.delete(k);
+                    this.onRequestRedraw();
+                });
+            this.inFlight.set(k, promise);
         }
     }
 
     /** Draw cached tiles intersecting the viewport, scaled for fractional zoom */
-    draw(ctx: CanvasRenderingContext2D, camera: Camera, view: Size): void {
-        const state = camera.getViewState();
-        const tz = this.tileZoomFor(state.zoom);
-        const worldSize = this.tileSize / Math.pow(2, tz);
-        const screenTile = this.tileSize * Math.pow(2, state.zoom - tz);
-        const range = computeVisibleRange(state, view, this.tileSize, tz);
+    draw(ctx: CanvasRenderingContext2D, state: ViewState, view: Size): void {
+        const z = this.tileZoomFor(state.zoom);
+        const worldSize = this.tileSize / Math.pow(2, z);
+        const screenTile = this.tileSize * Math.pow(2, state.zoom - z);
+        const scale = Math.pow(2, state.zoom);
+        for (const t of this.visibleTiles(state, view)) {
+            const image = this.cache.get(coordKey({ z: t.z, x: t.x, y: t.y }));
+            if (!image) continue;
+            // world→screen inline: (world - center) * scale + viewport center
+            const px = (t.dx * worldSize - state.x) * scale + view.width / 2;
+            const py = (t.dy * worldSize - state.y) * scale + view.height / 2;
+            const w = screenTile * (image.width / this.tileSize);
+            const h = screenTile * (image.height / this.tileSize);
+            ctx.drawImage(image, px, py, w + 0.5, h + 0.5);
+        }
+    }
 
-        for (let x = range.minX; x <= range.maxX; x++) {
-            for (let y = range.minY; y <= range.maxY; y++) {
-                const image = this.cache.get(`${tz}/${x}_${y}`);
-                if (!image) continue;
-                const p = camera.worldToScreen({ x: x * worldSize, y: y * worldSize }, view);
-                const w = screenTile * (image.width / this.tileSize);
-                const h = screenTile * (image.height / this.tileSize);
-                ctx.drawImage(image, p.x, p.y, w + 0.5, h + 0.5);
+    /** Canonical (z, x, y) set for this frame; dx/dy = pre-wrap draw offsets */
+    private visibleTiles(state: ViewState, view: Size): VisibleTile[] {
+        const z = this.tileZoomFor(state.zoom);
+        const range = computeVisibleRange(state, view, this.tileSize, z);
+        const grid = this.source.getGridSize?.(z) ?? {
+            cols: Math.pow(2, z),
+            rows: Math.pow(2, z),
+        };
+        const wrapX = this.source.wrapX ?? false;
+        const tiles: VisibleTile[] = [];
+        for (let ix = range.minX; ix <= range.maxX; ix++) {
+            for (let iy = range.minY; iy <= range.maxY; iy++) {
+                if (iy < 0 || iy >= grid.rows) continue; // Y outside world: skip
+                let x = ix;
+                if (wrapX)
+                    x = ((ix % grid.cols) + grid.cols) % grid.cols; // X: wrap
+                else if (ix < 0 || ix >= grid.cols) continue; // bounded world: skip
+                tiles.push({ z, x, y: iy, dx: ix, dy: iy });
             }
         }
+        return tiles;
     }
 }
