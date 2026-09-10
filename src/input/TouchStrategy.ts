@@ -1,13 +1,19 @@
 import type { Point } from '../types';
 import type { InputHandlers, InputStrategy } from './types';
 
-/** Touch: one finger pans, two fingers pinch-zoom */
+/** Touch / pen: one finger pans, two fingers pinch-zoom, quick single-finger taps fire onTap */
 export class TouchStrategy implements InputStrategy {
     private target: HTMLElement | null = null;
     private handlers: InputHandlers | null = null;
     private pointers = new Map<number, Point>();
     private prevMid: Point | null = null;
     private prevDist = 0;
+
+    // Tap detection
+    private tapStart: { p: Point; t: number; pointerId: number } | null = null;
+    private tapMoved = false;
+    private readonly TAP_DISTANCE_SQ = 64; // 8px threshold
+    private readonly TAP_MAX_MS = 500;
 
     attach(target: HTMLElement, handlers: InputHandlers): void {
         this.target = target;
@@ -38,7 +44,18 @@ export class TouchStrategy implements InputStrategy {
 
     private onDown = (e: PointerEvent): void => {
         if (e.pointerType === 'mouse') return;
-        if (this.pointers.size === 0) this.handlers!.onPanStart();
+
+        if (this.pointers.size === 0) {
+            this.handlers!.onPanStart();
+            // Start tracking a potential tap (only for the very first finger)
+            this.tapStart = { p: this.toLocal(e), t: performance.now(), pointerId: e.pointerId };
+            this.tapMoved = false;
+        } else {
+            // Any extra finger invalidates the tap (pinch in progress)
+            this.tapStart = null;
+            this.tapMoved = true;
+        }
+
         this.pointers.set(e.pointerId, this.toLocal(e));
         this.prevMid = null;
         this.prevDist = 0;
@@ -49,6 +66,15 @@ export class TouchStrategy implements InputStrategy {
         const next = this.toLocal(e);
         const prev = this.pointers.get(e.pointerId)!;
         this.pointers.set(e.pointerId, next);
+
+        // Any pointer moving more than the threshold kills the tap
+        if (this.tapStart && this.tapStart.pointerId === e.pointerId) {
+            const dx = next.x - this.tapStart.p.x;
+            const dy = next.y - this.tapStart.p.y;
+            if (dx * dx + dy * dy > this.TAP_DISTANCE_SQ) this.tapMoved = true;
+        } else if (this.tapStart) {
+            this.tapMoved = true;
+        }
 
         if (this.pointers.size === 1) {
             this.handlers!.onPan(next.x - prev.x, next.y - prev.y);
@@ -73,9 +99,24 @@ export class TouchStrategy implements InputStrategy {
 
     private onUp = (e: PointerEvent): void => {
         if (e.pointerType === 'mouse') return;
+
+        // Detect tap: single finger, barely moved, released quickly
+        if (
+            this.tapStart &&
+            this.tapStart.pointerId === e.pointerId &&
+            !this.tapMoved &&
+            performance.now() - this.tapStart.t < this.TAP_MAX_MS
+        ) {
+            this.handlers!.onTap(this.tapStart.p);
+        }
+        if (e.pointerId === this.tapStart?.pointerId) this.tapStart = null;
+
         this.pointers.delete(e.pointerId);
         this.prevMid = null;
         this.prevDist = 0;
-        if (this.pointers.size === 0) this.handlers!.onPanEnd({ x: 0, y: 0 });
+        if (this.pointers.size === 0) {
+            this.handlers!.onPanEnd({ x: 0, y: 0 });
+            this.tapMoved = false;
+        }
     };
 }

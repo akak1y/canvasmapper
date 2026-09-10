@@ -101,6 +101,7 @@ export class MapEngine extends EventEmitter {
             },
             onZoom: (delta, anchor) => this.applyZoom(delta, anchor),
             onTap: (screen) => {
+                // screen is already in canvas-local coords (TouchStrategy.toLocal / mouse click offset)
                 const world = this.screenToWorld(screen);
                 const marker = this.layers.hitTest(screen, this.camera, this.viewport.size);
                 if (marker) {

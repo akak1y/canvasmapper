@@ -16,10 +16,16 @@ export interface ControlsOptions {
  * Stable class names (.cm-btn, .cm-controls--*) are part of the public API:
  * users style them from external CSS. Do not rename without a major version.
  */
-const BUTTONS: Record<ControlButton, { text: string; aria: string; className: string }> = {
-    in: { text: '+', aria: 'Zoom in', className: 'cm-btn--in' },
-    out: { text: '−', aria: 'Zoom out', className: 'cm-btn--out' },
-    reset: { text: '⌂', aria: 'Reset view', className: 'cm-btn--reset' },
+const BUTTONS: Record<ControlButton, { label: string; className: string; text?: string; svg?: string }> = {
+    in: { label: 'Zoom in', className: 'cm-btn--in', text: '+' },
+    out: { label: 'Zoom out', className: 'cm-btn--out', text: '−' },
+    reset: {
+        label: 'Reset view',
+        className: 'cm-btn--reset',
+        // Inline SVG: unlike the U+2302 glyph, its optical center does not
+        // depend on platform font metrics, so flex centering is exact
+        svg: '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 8.2 8 3l5.5 5.2"/><path d="M4.6 7.2v5.3h6.8V7.2"/></svg>',
+    },
 };
 
 export class Controls {
@@ -41,8 +47,9 @@ export class Controls {
             const button = document.createElement('button');
             button.type = 'button';
             button.className = `cm-btn ${meta.className}`;
-            button.setAttribute('aria-label', meta.aria);
-            button.textContent = meta.text;
+            button.setAttribute('aria-label', meta.label);
+            if (meta.svg) button.innerHTML = meta.svg;
+            else button.textContent = meta.text ?? '';
             button.addEventListener('click', () => {
                 if (name === 'in') engine.zoomIn();
                 else if (name === 'out') engine.zoomOut();

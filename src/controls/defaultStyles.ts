@@ -7,14 +7,19 @@ export const DEFAULT_CONTROLS_CSS = `
 :where(.cm-controls) {
     position: absolute; z-index: 10; display: flex;
     flex-direction: column; gap: 6px; margin: 12px;
+    align-items: center;
 }
-:where(.cm-controls--topright)  { top: 0; right: 0; }
-:where(.cm-controls--topleft)   { top: 0; left: 0; }
+:where(.cm-controls--topright) { top: 0; right: 0; }
+:where(.cm-controls--topleft) { top: 0; left: 0; }
 :where(.cm-controls--bottomright) { bottom: 0; right: 0; }
-:where(.cm-controls--bottomleft)  { bottom: 0; left: 0; }
+:where(.cm-controls--bottomleft) { bottom: 0; left: 0; }
 :where(.cm-btn) {
+    display: inline-flex; align-items: center; justify-content: center;
+    flex: 0 0 auto;
     width: var(--cm-btn-size, 36px);
     height: var(--cm-btn-size, 36px);
+    padding: 0;
+    margin: 0;
     border-radius: var(--cm-btn-radius, 8px);
     background: var(--cm-btn-bg, rgba(15, 20, 32, 0.85));
     color: var(--cm-btn-color, #7fd1ff);
@@ -22,10 +27,21 @@ export const DEFAULT_CONTROLS_CSS = `
     font: 600 18px/1 system-ui, sans-serif;
     cursor: pointer;
     transition: transform 0.15s, background 0.15s;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
 }
+:where(.cm-btn svg) { display: block; }
 :where(.cm-btn:hover) { background: var(--cm-btn-bg-hover, rgba(30, 41, 59, 0.9)); }
 :where(.cm-btn:active) { transform: scale(0.95); }
 :where(.cm-btn:focus-visible) { outline: 2px solid var(--cm-btn-color, #7fd1ff); outline-offset: 2px; }
+@media (hover: none) and (pointer: coarse) {
+    :where(.cm-btn) {
+        width: var(--cm-btn-size-touch, 44px);
+        height: var(--cm-btn-size-touch, 44px);
+    }
+}
 `;
 
 /** Inject once per page (multiple maps share one style tag) */

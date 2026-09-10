@@ -67,3 +67,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `wrapX` option for horizontally wrapping worlds
 - Regression tests with exact expected tile ranges
+
+## [1.0.3] - 2026-09-11
+
+### Fixed
+
+- Touch tap on a marker emits `marker:click`: TouchStrategy detects quick single-finger taps (8 px / 500 ms)
+- 44 px tap targets apply only to hover-less touch devices; touch-enabled desktops keep 36 px controls
+- Controls column stays coaxial on every platform (`align-items: center`)
+- Reset button icon no longer drifts: inline SVG replaces the metric-quirky U+2302 glyph
+
+### Changed
+
+- Showcase demo: the layer toggle button now reuses the engine `.cm-btn` theme (pill variant)

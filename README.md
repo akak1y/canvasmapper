@@ -5,7 +5,7 @@ EN | [RU](docs/i18n/README_RU.md) | [ZH](docs/i18n/README_ZH-CN.md) | [ES](docs/
 [![npm](https://img.shields.io/npm/v/canvasmapper.svg)](https://www.npmjs.com/package/canvasmapper)
 [![npm downloads](https://img.shields.io/npm/dm/canvasmapper.svg)](https://www.npmjs.com/package/canvasmapper)
 [![CI](https://github.com/akak1y/canvasmapper/actions/workflows/ci.yml/badge.svg)](https://github.com/akak1y/canvasmapper/actions/workflows/ci.yml)
-[![bundle size](https://img.shields.io/badge/bundle%20size-13.2%20kB%20gzip-06d6a0)](https://www.npmjs.com/package/canvasmapper)
+[![bundle size](https://img.shields.io/badge/bundle%20size-14.0%20kB%20gzip-06d6a0)](https://www.npmjs.com/package/canvasmapper)
 [![demo](https://img.shields.io/badge/demo-live-06d6a0)](https://akak1y.github.io/canvasmapper/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 

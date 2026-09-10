@@ -31,17 +31,6 @@
                 max-width: 340px;
                 white-space: pre-line;
             }
-            .hud button {
-                pointer-events: auto;
-                margin-top: 6px;
-                cursor: pointer;
-                background: #24435c;
-                color: #ffd166;
-                border: 0;
-                border-radius: 999px;
-                padding: 4px 12px;
-                font: 12px monospace;
-            }
             .attribution {
                 position: fixed;
                 right: 8px;
@@ -135,6 +124,8 @@
 
             const hud = document.getElementById('hud');
             const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'cm-btn'; // same theme as the map controls
             btn.textContent = 'pois: on';
             btn.onclick = () => {
                 if (pois.visible) pois.hide();
@@ -142,9 +133,13 @@
                 btn.textContent = 'pois: ' + (pois.visible ? 'on' : 'off');
             };
             hud.after(btn);
+            // pill, not square: a text label needs auto width
             btn.style.position = 'fixed';
             btn.style.top = '150px';
             btn.style.left = '12px';
+            btn.style.width = 'auto';
+            btn.style.padding = '0 14px';
+            btn.style.font = '600 12px monospace';
 
             let frames = 0;
             let last = performance.now();
