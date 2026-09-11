@@ -80,3 +80,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Showcase demo: the layer toggle button now reuses the engine `.cm-btn` theme (pill variant)
+
+## [1.0.4] - 2026-09-12
+
+### Changed
+
+- Tile loads are ordered by distance from viewport center (center-out). Under
+  slow connections or server throttling, the part of the map the user is
+  looking at renders first, while periphery tiles follow.

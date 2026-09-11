@@ -71,7 +71,27 @@ export class TileManager {
 
     /** Kick off loads for visible tiles we don't have yet */
     update(state: ViewState, view: Size): void {
-        for (const t of this.visibleTiles(state, view)) {
+        const tiles = this.visibleTiles(state, view);
+        const z = this.tileZoomFor(state.zoom);
+        const worldSize = this.tileSize / Math.pow(2, z);
+        const scale = Math.pow(2, state.zoom);
+        const cx = view.width / 2;
+        const cy = view.height / 2;
+
+        // Center-out ordering: tiles closer to the viewport center load first,
+        // so the user always sees the important part of the map first under load.
+        // Using squared screen distance — no sqrt needed for ordering.
+        tiles.sort((a, b) => {
+            const ax = (a.dx * worldSize - state.x) * scale + cx;
+            const ay = (a.dy * worldSize - state.y) * scale + cy;
+            const bx = (b.dx * worldSize - state.x) * scale + cx;
+            const by = (b.dy * worldSize - state.y) * scale + cy;
+            const da = (ax - cx) ** 2 + (ay - cy) ** 2;
+            const db = (bx - cx) ** 2 + (by - cy) ** 2;
+            return da - db;
+        });
+
+        for (const t of tiles) {
             const k = coordKey({ z: t.z, x: t.x, y: t.y });
             if (this.cache.get(k) || this.inFlight.has(k) || this.failed.has(k)) continue;
 
