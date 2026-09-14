@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>CanvasMapper — Vector layers</title>
+        <style>
+            body {
+                margin: 0;
+            }
+            #map {
+                width: 100vw;
+                height: 100vh;
+            }
+            .log {
+                position: fixed;
+                left: 12px;
+                bottom: 12px;
+                padding: 8px 12px;
+                background: rgba(15, 20, 32, 0.82);
+                color: #7fd1ff;
+                border-radius: 10px;
+                font: 12px monospace;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="map"></div>
+        <div class="log" id="log">click a shape…</div>
+        <script type="module">
+            import { MapEngine, UrlTileSource, lonLatToWorld } from '../src/index';
+
+            const map = new MapEngine(document.getElementById('map'), {
+                minZoom: 2,
+                maxZoom: 18,
+                source: new UrlTileSource({ urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png' }),
+                controls: { position: 'topright' },
+            });
+            map.setView({ ...lonLatToWorld(2.352, 48.857), zoom: 11 });
+
+            // meters → world units at a given latitude
+            const mToWorld = (m, lat) => m / (156543.03 * Math.cos((lat * Math.PI) / 180));
+
+            const vectors = map.createVectorLayer('ops', { zIndex: 1 });
+
+            // delivery route (polyline, dashed)
+            vectors.addPolyline(
+                [lonLatToWorld(2.29, 48.858), lonLatToWorld(2.32, 48.87), lonLatToWorld(2.352, 48.857), lonLatToWorld(2.38, 48.845)],
+                { strokeColor: '#ffd166', strokeWidth: 3, dash: [8, 6] },
+                { name: 'route A-17' }
+            );
+
+            // geofence (polygon with translucent fill)
+            vectors.addPolygon(
+                [lonLatToWorld(2.31, 48.88), lonLatToWorld(2.39, 48.88), lonLatToWorld(2.39, 48.84), lonLatToWorld(2.31, 48.84)],
+                { strokeColor: '#06d6a0', strokeWidth: 2, fillColor: '#06d6a0', fillOpacity: 0.15 },
+                { name: 'zone centre' }
+            );
+
+            // service radius (circle, 3 km)
+            vectors.addCircle(
+                lonLatToWorld(2.352, 48.857),
+                mToWorld(3000, 48.857),
+                {
+                    strokeColor: '#ef476f',
+                    strokeWidth: 2,
+                    fillColor: '#ef476f',
+                    fillOpacity: 0.08,
+                },
+                { name: '3km radius' }
+            );
+
+            map.on('vector:click', ({ shape }) => {
+                document.getElementById('log').textContent = 'clicked: ' + JSON.stringify(shape.data ?? shape.kind);
+            });
+        </script>
+    </body>
+</html>

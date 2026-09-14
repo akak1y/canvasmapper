@@ -12,6 +12,7 @@ import { Controls, type ControlsOptions } from '../controls/Controls';
 import { LayerManager } from '../layers/LayerManager';
 import type { MarkerLayer } from '../layers/MarkerLayer';
 import type { LayerOptions } from '../layers/MarkerLayer';
+import { VectorLayer, type VectorLayerOptions } from '../layers/VectorLayer';
 
 export interface MapEngineOptions {
     tileSize?: number;
@@ -52,6 +53,8 @@ export class MapEngine extends EventEmitter {
     private readonly tiles: TileManager;
     private readonly controls: Controls | null;
     private readonly layers = new LayerManager();
+    /** Vector layers shared with the renderer by reference — additions sort in place. */
+    private readonly vectors: VectorLayer[] = [];
     private homeView: ViewState = { x: 0, y: 0, zoom: 0 };
 
     private dirty = true;
@@ -84,7 +87,8 @@ export class MapEngine extends EventEmitter {
         this.layers.onRequestRedraw = () => {
             this.dirty = true;
         };
-        this.renderer = new Renderer(this.viewport, this.camera, this.tiles, this.layers);
+        // Pass the SAME vectors array to the renderer — later additions are seen automatically.
+        this.renderer = new Renderer(this.viewport, this.camera, this.tiles, this.layers, this.vectors);
         this.targetZoom = this.camera.getViewState().zoom;
         this.zoomAnchor = this.center();
 
@@ -107,6 +111,18 @@ export class MapEngine extends EventEmitter {
                 if (marker) {
                     this.emit('marker:click', { marker, screen, world });
                     marker.layer?.emit('click', marker);
+                } else {
+                    // Vector hit-test (top layer first)
+                    const z = this.camera.getViewState().zoom;
+                    for (let i = this.vectors.length - 1; i >= 0; i--) {
+                        const v = this.vectors[i];
+                        if (!v.visible) continue;
+                        const shape = v.hitTest(world, 4, z);
+                        if (shape) {
+                            this.emit('vector:click', { layer: v, shape, screen, world });
+                            break;
+                        }
+                    }
                 }
                 this.emit('click', { screen, world, marker });
             },
@@ -169,6 +185,18 @@ export class MapEngine extends EventEmitter {
     /** Create a marker layer (drawn in z-index order) */
     createLayer(name: string, options: LayerOptions = {}): MarkerLayer {
         return this.layers.createLayer(name, options);
+    }
+
+    /** Create a vector layer for polylines, polygons and circles */
+    createVectorLayer(name: string, options: VectorLayerOptions = {}): VectorLayer {
+        const layer = new VectorLayer(name, options);
+        layer.onRequestRedraw = () => {
+            this.dirty = true;
+        };
+        this.vectors.push(layer);
+        this.vectors.sort((a, b) => a.zIndex - b.zIndex);
+        this.dirty = true;
+        return layer;
     }
 
     private center(): Point {

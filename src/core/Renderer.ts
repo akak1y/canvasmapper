@@ -1,5 +1,6 @@
 import type { TileManager } from '../tiles/TileManager';
 import type { LayerManager } from '../layers/LayerManager';
+import type { VectorLayer } from '../layers/VectorLayer';
 import type { Camera } from './Camera';
 import type { Viewport } from './Viewport';
 
@@ -11,23 +12,25 @@ export class Renderer {
         private readonly viewport: Viewport,
         private readonly camera: Camera,
         private readonly tiles: TileManager | null = null,
-        private readonly layers: LayerManager | null = null
+        private readonly layers: LayerManager | null = null,
+        private readonly vectors: VectorLayer[] = []
     ) {}
 
     render(): void {
         const { ctx } = this.viewport;
         const size = this.viewport.size;
         this.viewport.clear();
-
         ctx.fillStyle = '#0f1420';
         ctx.fillRect(0, 0, size.width, size.height);
         this.drawGrid();
 
+        const state = this.camera.getViewState();
+
         if (this.tiles) {
-            const state = this.camera.getViewState();
-            this.tiles.update(state, size); // async loads, no blocking
+            this.tiles.update(state, size);
             this.tiles.draw(ctx, state, size);
         }
+        for (const v of this.vectors) v.draw(ctx, state, size);
         if (this.layers) {
             this.layers.draw(ctx, this.camera, size);
         }

@@ -35,6 +35,9 @@ export type { LayerOptions } from './layers/MarkerLayer';
 export { Marker } from './layers/Marker';
 export type { MarkerOptions } from './layers/Marker';
 export { SpriteCache } from './layers/SpriteCache';
+export { VectorLayer } from './layers/VectorLayer';
+export type { VectorLayerOptions, VectorShape, VectorStyle } from './layers/VectorLayer';
+export { lonLatToWorld, worldToLonLat } from './utils/geo';
 
 // Input
 export { InputController } from './input/InputController';
