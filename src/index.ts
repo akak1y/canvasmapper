@@ -43,4 +43,4 @@ export { lonLatToWorld, worldToLonLat } from './utils/geo';
 export { InputController } from './input/InputController';
 
 // Version
-export const VERSION = '1.0.4';
+export const VERSION = '1.1.0';

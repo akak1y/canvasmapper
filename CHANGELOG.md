@@ -92,6 +92,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.1.0] - 2026-09-15
 
 ### Added
+
 - `VectorLayer`: polylines, polygons and circles with per-shape styles, bbox culling and `vector:click` hit-testing
 - `addGeoJSON()` for LineString / MultiLineString / Polygon / MultiPolygon (lon/lat input, holes ignored in v1)
 - `lonLatToWorld()` / `worldToLonLat()` Web Mercator helpers
